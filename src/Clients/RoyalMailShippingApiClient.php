@@ -39,7 +39,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoyalMailShippingApiClient
 {
-    protected const AUTH_URL = 'https://authentication.proshipping.net/connect/token';
+    protected const AUTH_URL = 'https://authentication.proshipping.net/';
     protected const BASE_URL = 'https://api.royalmail.net/shipping/v3/';
 
     /**
@@ -77,6 +77,17 @@ class RoyalMailShippingApiClient
      * Begin API utility methods
      *
      *****/
+
+    /**
+     * @param string $base
+     * @param string $method
+     *
+     * @return string
+     */
+    protected function buildEndpoint(string $base, string $method): string
+    {
+        return "$base/$method";
+    }
 
     /**
      * @param array $items
@@ -132,7 +143,9 @@ class RoyalMailShippingApiClient
      */
     protected function refreshToken(): string
     {
-        $response = $this->sendRequest(Request::METHOD_POST, 'token');
+        $endpoint = $this->buildEndpoint(self::AUTH_URL, 'connect/token');
+
+        $response = $this->sendRequest(Request::METHOD_POST, $endpoint);
 
         $this->authClient->setToken($response['token']);
 
@@ -147,7 +160,7 @@ class RoyalMailShippingApiClient
     }
 
     /**
-     * @param string $method
+     * @param string $httpMethod
      * @param string $endpoint
      * @param array|null $data
      * @param string|null $responseModel
@@ -159,7 +172,7 @@ class RoyalMailShippingApiClient
      * @throws RequestFailedException
      */
     protected function sendRequest(
-        string  $method,
+        string  $httpMethod,
         string  $endpoint,
         ?array  $data = null,
         ?string $responseModel = null,
@@ -168,7 +181,7 @@ class RoyalMailShippingApiClient
     ): array
     {
         /** @var ResponseInterface $response */
-        $response = $this->httpClient->{$method}($endpoint, [
+        $response = $this->httpClient->{$httpMethod}($endpoint, [
             'body' => $data ? json_encode($data) : null,
             'headers' => [
                     'Accept' => 'application/json',
@@ -181,7 +194,7 @@ class RoyalMailShippingApiClient
                 $this->authClient->setToken(null);
 
                 return $this->sendRequest(
-                    $method,
+                    $httpMethod,
                     $endpoint,
                     $data,
                     null,
