@@ -186,7 +186,7 @@ class RoyalMailShippingApiClient
             'headers' => [
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
-                ] + $headers,
+                ] + $headers ?: [],
         ]);
 
         if ($this->responseIsError($response)) {
