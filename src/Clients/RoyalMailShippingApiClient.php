@@ -86,7 +86,7 @@ class RoyalMailShippingApiClient
      */
     protected function buildEndpoint(string $base, string $method): string
     {
-        return "$base/$method";
+        return "$base$method";
     }
 
     /**
@@ -145,7 +145,15 @@ class RoyalMailShippingApiClient
     {
         $endpoint = $this->buildEndpoint(self::AUTH_URL, 'connect/token');
 
-        $response = $this->sendRequest(Request::METHOD_POST, $endpoint);
+        $response = $this->sendRequest(
+            Request::METHOD_POST,
+            $endpoint,
+            [
+                'grant_type' => 'client_credentials',
+                'client_id' => $this->authClient->getClientId(),
+                'client_secret' => $this->authClient->getClientSecret(),
+            ]
+        );
 
         $this->authClient->setToken($response['token']);
 
@@ -191,9 +199,9 @@ class RoyalMailShippingApiClient
         $response = $this->httpClient->{$httpMethod}($endpoint, [
             'body' => $data ? json_encode($data) : null,
             'headers' => [
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                ] + $headers ?: [],
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ] + $headers ?: [],
         ]);
 
         if ($this->responseIsError($response)) {
