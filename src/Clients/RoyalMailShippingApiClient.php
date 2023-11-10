@@ -207,7 +207,7 @@ class RoyalMailShippingApiClient
         $response = $this->httpClient->{$httpMethod}($endpoint, [
             'body' => $data ? json_encode($data) : null,
             'headers' => [
-                'Authorization' . "Bearer $token",
+                'Authorization' => "Bearer $token",
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ],
