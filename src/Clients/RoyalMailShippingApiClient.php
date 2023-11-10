@@ -213,6 +213,8 @@ class RoyalMailShippingApiClient
             ],
         ]);
 
+        dd($response);
+
         if ($this->responseIsError($response)) {
             if ($response->getStatusCode() === Response::HTTP_UNAUTHORIZED) {
                 $this->authClient->setToken(null);
