@@ -39,7 +39,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoyalMailShippingApiClient
 {
-    protected const AUTH_URL = 'https://authentication.proshipping.net/';
+    protected const AUTH_URL = 'https://authentication.proshipping.net/connect/token';
     protected const BASE_URL = 'https://api.royalmail.net/shipping/v3/';
 
     /**
@@ -143,17 +143,7 @@ class RoyalMailShippingApiClient
      */
     protected function refreshToken(): string
     {
-        $endpoint = $this->buildEndpoint(self::AUTH_URL, 'connect/token');
-
-        $response = $this->sendRequest(
-            Request::METHOD_POST,
-            $endpoint,
-            [
-                'grant_type' => 'client_credentials',
-                'client_id' => $this->authClient->getClientId(),
-                'client_secret' => $this->authClient->getClientSecret(),
-            ]
-        );
+        $response = $this->sendAuthRequest();
 
         $this->authClient->setToken($response['token']);
 
@@ -165,6 +155,34 @@ class RoyalMailShippingApiClient
         $this->httpClient = new HttpClient([
             'http_errors' => false,
         ]);
+    }
+
+    /**
+     * @return array
+     *
+     * @throws RequestFailedException
+     */
+    protected function sendAuthRequest(): array
+    {
+        $response = $this->httpClient->post(self::AUTH_URL, [
+            'body' => json_encode(
+                [
+                    'grant_type' => 'client_credentials',
+                    'client_id' => $this->authClient->getClientId(),
+                    'client_secret' => $this->authClient->getClientSecret(),
+                ]
+            ),
+            'headers' => [
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ],
+        ]);
+
+        if ($this->responseIsError($response)) {
+            throw new RequestFailedException($response);
+        }
+
+        return json_decode((string)$response->getBody(), true);
     }
 
     /**
@@ -188,13 +206,6 @@ class RoyalMailShippingApiClient
         bool    $refreshToken = false
     ): array
     {
-        dump($httpMethod);
-        dump($endpoint);
-        dump($data);
-        dump($headers);
-
-        dd('stop');
-
         /** @var ResponseInterface $response */
         $response = $this->httpClient->{$httpMethod}($endpoint, [
             'body' => $data ? json_encode($data) : null,
