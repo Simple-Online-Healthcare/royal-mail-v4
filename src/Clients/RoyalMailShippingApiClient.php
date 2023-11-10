@@ -180,6 +180,11 @@ class RoyalMailShippingApiClient
         bool    $refreshToken = false
     ): array
     {
+        dump($httpMethod);
+        dump($endpoint);
+        dump($data);
+        dump($headers);
+
         /** @var ResponseInterface $response */
         $response = $this->httpClient->{$httpMethod}($endpoint, [
             'body' => $data ? json_encode($data) : null,
