@@ -5,12 +5,8 @@
     "license": "proprietary",
     "authors": [
         {
-            "name": "Craig Bartholomew",
-            "email": "craigb82@gmail.com"
-        },
-        {
             "name": "Neil Morgan",
-            "email": "neil@ecom24.co.uk"
+            "email": "neil@simpleonlinehealthcare.com"
         }
     ],
     "autoload": {
@@ -24,11 +20,6 @@
         "jms/serializer": "^3.6"
     },
     "require-dev": {
-        "laravel/framework": "^6.2",
-        "friendsofphp/php-cs-fixer": "^2.16"
-    },
-    "scripts": {
-        "php-cs-fixer:dummy": "php-cs-fixer fix --config=./.php_cs --dry-run",
-        "php-cs-fixer:real": "php-cs-fixer fix --config=./.php_cs"
+        "laravel/framework": "^6.2"
     }
 }

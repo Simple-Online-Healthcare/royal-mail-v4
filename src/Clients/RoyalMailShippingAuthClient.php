@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleOnlineHealthcare\RoyalMail\Clients;
 
 class RoyalMailShippingAuthClient
@@ -7,40 +9,26 @@ class RoyalMailShippingAuthClient
     /**
      * @var string
      */
-    protected $clientId;
+    protected string $clientId;
 
     /**
      * @var string
      */
-    protected $clientSecret;
-
-    /**
-     * @var string
-     */
-    protected $username;
-
-    /**
-     * @var string
-     */
-    protected $password;
+    protected string $clientSecret;
 
     /**
      * @var string|null
      */
-    protected $token = null;
+    protected ?string $token = null;
 
     /**
      * @param string $clientId
      * @param string $clientSecret
-     * @param string $username
-     * @param string $password
      */
-    public function __construct(string $clientId, string $clientSecret, string $username, string $password)
+    public function __construct(string $clientId, string $clientSecret)
     {
         $this->clientId = $clientId;
         $this->clientSecret = $clientSecret;
-        $this->username = $username;
-        $this->password = $password;
     }
 
     /**
@@ -79,46 +67,6 @@ class RoyalMailShippingAuthClient
     public function setClientSecret(string $clientSecret): RoyalMailShippingAuthClient
     {
         $this->clientSecret = $clientSecret;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUsername(): string
-    {
-        return $this->username;
-    }
-
-    /**
-     * @param string $username
-     *
-     * @return RoyalMailShippingAuthClient
-     */
-    public function setUsername(string $username): RoyalMailShippingAuthClient
-    {
-        $this->username = $username;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param string $password
-     *
-     * @return RoyalMailShippingAuthClient
-     */
-    public function setPassword(string $password): RoyalMailShippingAuthClient
-    {
-        $this->password = $password;
 
         return $this;
     }

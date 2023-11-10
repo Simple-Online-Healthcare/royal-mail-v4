@@ -5,8 +5,6 @@ return [
         'auth' => [
             'clientId' => env('ROYALMAIL_SHIPPING_AUTH_CLIENT_ID'),
             'clientSecret' => env('ROYALMAIL_SHIPPING_AUTH_CLIENT_SECRET'),
-            'username' => env('ROYALMAIL_SHIPPING_AUTH_USERNAME'),
-            'password' => env('ROYALMAIL_SHIPPING_AUTH_PASSWORD'),
         ],
         'cache' => [
             'prefix' => env('ROYALMAIL_SHIPPING_CACHE_PREFIX', ''),

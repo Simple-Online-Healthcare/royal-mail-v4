@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleOnlineHealthcare\RoyalMail;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
@@ -39,6 +41,7 @@ class RoyalMailServiceProvider extends ServiceProvider
 
     protected function initializeSerializerAutoloader()
     {
+        /** @noinspection PhpDeprecationInspection */
         AnnotationRegistry::registerLoader([require base_path('vendor/autoload.php'), 'loadClass']);
     }
 
@@ -48,8 +51,6 @@ class RoyalMailServiceProvider extends ServiceProvider
             return new RoyalMailShippingAuthClient(
                 config('royalmail.shipping.auth.clientId'),
                 config('royalmail.shipping.auth.clientSecret'),
-                config('royalmail.shipping.auth.username'),
-                config('royalmail.shipping.auth.password')
             );
         });
     }
@@ -60,9 +61,6 @@ class RoyalMailServiceProvider extends ServiceProvider
             return new RoyalMailShippingApiClient(
                 $this->app->make('serializer.shipping'),
                 $this->app->make(RoyalMailShippingAuthClient::class),
-                $this->app->make('cache.store'),
-                config('royalmail.shipping.cache.prefix'),
-                config('royalmail.shipping.cache.ttl')
             );
         });
     }

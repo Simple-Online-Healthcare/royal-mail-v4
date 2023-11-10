@@ -1,11 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleOnlineHealthcare\RoyalMail\Clients;
 
 use GuzzleHttp\Client as HttpClient;
-use Illuminate\Cache\Repository as CacheRepository;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface;
 use SimpleOnlineHealthcare\RoyalMail\Exceptions\RequestFailedException;
@@ -35,204 +34,49 @@ use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\ShipmentsDeferResponse;
 use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\ShipmentsHoldResponse;
 use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\ShipmentsReleaseRequest;
 use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\ShipmentsReleaseResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class RoyalMailShippingApiClient
 {
-    const BASE_URL = 'https://api.royalmail.net/shipping/v3/';
+    protected const AUTH_URL = 'https://authentication.proshipping.net/connect/token';
+    protected const BASE_URL = 'https://api.royalmail.net/shipping/v3/';
 
     /**
      * @var RoyalMailShippingAuthClient
      */
-    protected $authClient;
-
-    /**
-     * @var string|null
-     */
-    protected $cachePrefix;
-
-    /**
-     * @var int|null
-     */
-    protected $cacheTtl;
-
-    /**
-     * @var CacheRepository
-     */
-    protected $cacheRepository;
+    protected RoyalMailShippingAuthClient $authClient;
 
     /**
      * @var HttpClient
      */
-    protected $httpClient;
+    protected HttpClient $httpClient;
 
     /**
      * @var SerializerInterface
      */
-    protected $serializer;
+    protected SerializerInterface $serializer;
 
     /**
-     * @param SerializerInterface         $serializer
+     * @param SerializerInterface $serializer
      * @param RoyalMailShippingAuthClient $authClient
-     * @param CacheRepository             $cacheRepository
-     * @param string|null                 $cachePrefix
-     * @param int|null                    $cacheTtl
      */
-    public function __construct(SerializerInterface $serializer, RoyalMailShippingAuthClient $authClient, CacheRepository $cacheRepository, ?string $cachePrefix, ?int $cacheTtl)
+    public function __construct(
+        SerializerInterface         $serializer,
+        RoyalMailShippingAuthClient $authClient
+    )
     {
         $this->serializer = $serializer;
         $this->authClient = $authClient;
-        $this->cachePrefix = $cachePrefix;
-        $this->cacheTtl = $cacheTtl;
-        $this->cacheRepository = $cacheRepository;
 
         $this->buildClient();
-        $this->initialiseTokenFromCache();
     }
 
-    protected function buildClient()
-    {
-        $this->httpClient = new HttpClient([
-            'base_uri' => self::BASE_URL,
-            'http_errors' => false,
-        ]);
-    }
-
-    /**
-     * @param string      $method
-     * @param string      $endpoint
-     * @param array|null  $data
-     * @param string|null $responseModel
-     * @param array|null  $headers
-     * @param bool        $refreshToken
+    /*****
      *
-     * @throws RequestFailedException
+     * Begin API utility methods
      *
-     * @return array
-     */
-    protected function sendRequest(string $method, string $endpoint, ?array $data = null, ?string $responseModel = null, ?array $headers = null, bool $refreshToken = false)
-    {
-        $headers = $headers ?? [
-            'X-IBM-Client-Id' => $this->authClient->getClientId(),
-            'X-RMG-Auth-Token' => $this->getToken(),
-        ];
-
-        /** @var ResponseInterface $response */
-        $response = $this->httpClient->{$method}($endpoint, [
-            'body' => $data ? json_encode($data) : null,
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ] + $headers,
-        ]);
-
-        if ($this->responseIsError($response)) {
-            if (!$refreshToken && $response->getStatusCode() === Response::HTTP_UNAUTHORIZED) {
-                $this->authClient->setToken(null);
-
-                return $this->sendRequest($method, $endpoint, $data, null, $headers, true);
-            }
-
-            $exception = new RequestFailedException($response);
-
-            if ($responseModel) {
-                $body = (string) $response->getBody();
-                $body = json_decode($body, true);
-
-                $exception->setResponseModel($this->deserializeOne($body, $responseModel));
-            }
-
-            throw $exception;
-        }
-
-        return json_decode((string) $response->getBody(), true);
-    }
-
-    /**
-     * @param ResponseInterface $response
-     *
-     * @return bool
-     */
-    protected function responseIsError(ResponseInterface $response)
-    {
-        return $response->getStatusCode() >= 400 && $response->getStatusCode() <= 599;
-    }
-
-    protected function initialiseTokenFromCache()
-    {
-        if ($token = $this->cacheRepository->get($this->getCacheKey())) {
-            $this->authClient->setToken($token);
-        }
-    }
-
-    /**
-     * @return string
-     */
-    public function getToken()
-    {
-        if (!$token = $this->authClient->getToken()) {
-            $token = $this->refreshToken();
-        }
-
-        return $token;
-    }
-
-    /**
-     * @return string
-     */
-    public function refreshToken()
-    {
-        $headers = [
-            'X-IBM-Client-Id' => $this->authClient->getClientId(),
-            'X-IBM-Client-Secret' => $this->authClient->getClientSecret(),
-            'X-RMG-Security-Username' => $this->authClient->getUsername(),
-            'X-RMG-Security-Password' => $this->authClient->getPassword(),
-        ];
-
-        $response = $this->sendRequest(Request::METHOD_POST, 'token', null, null, $headers, false);
-
-        $this->authClient->setToken($response['token']);
-
-        if ($this->cacheTtl) {
-            $this->cacheRepository->put($this->getCacheKey(), $this->authClient->getToken(), $this->cacheTtl);
-        }
-
-        return $this->authClient->getToken();
-    }
-
-    /**
-     * @return string
-     */
-    protected function getCacheKey()
-    {
-        $key = 'royal-mail-auth-token';
-
-        if ($this->cachePrefix) {
-            $key = $this->cachePrefix . '-' . $key;
-        }
-
-        return $key;
-    }
-
-    /**
-     * @param object $object
-     *
-     * @return array
-     */
-    protected function serializeOne(object $object): array
-    {
-        return json_decode($this->serializer->serialize($object, 'json'), true);
-    }
-
-    /**
-     * @param array  $item
-     * @param string $targetClass
-     *
-     * @return object
-     */
-    protected function deserializeOne(array $item, string $targetClass): object
-    {
-        return $this->serializer->deserialize(json_encode($item), $targetClass, 'json');
-    }
+     *****/
 
     /**
      * @param array $items
@@ -251,7 +95,7 @@ class RoyalMailShippingApiClient
     }
 
     /**
-     * @param array  $items
+     * @param array $items
      * @param string $targetClass
      *
      * @return array
@@ -267,6 +111,131 @@ class RoyalMailShippingApiClient
         return $out;
     }
 
+    /**
+     * @return string
+     *
+     * @throws RequestFailedException
+     */
+    protected function getToken(): string
+    {
+        if (!$token = $this->authClient->getToken()) {
+            $token = $this->refreshToken();
+        }
+
+        return $token;
+    }
+
+    /**
+     * @return string
+     *
+     * @throws RequestFailedException
+     */
+    protected function refreshToken(): string
+    {
+        $response = $this->sendRequest(Request::METHOD_POST, 'token');
+
+        $this->authClient->setToken($response['token']);
+
+        return $this->authClient->getToken();
+    }
+
+    protected function buildClient(): void
+    {
+        $this->httpClient = new HttpClient([
+            'http_errors' => false,
+        ]);
+    }
+
+    /**
+     * @param string $method
+     * @param string $endpoint
+     * @param array|null $data
+     * @param string|null $responseModel
+     * @param array|null $headers
+     * @param bool $refreshToken
+     *
+     * @return array
+     *
+     * @throws RequestFailedException
+     */
+    protected function sendRequest(
+        string  $method,
+        string  $endpoint,
+        ?array  $data = null,
+        ?string $responseModel = null,
+        ?array  $headers = null,
+        bool    $refreshToken = false
+    ): array
+    {
+        /** @var ResponseInterface $response */
+        $response = $this->httpClient->{$method}($endpoint, [
+            'body' => $data ? json_encode($data) : null,
+            'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                ] + $headers,
+        ]);
+
+        if ($this->responseIsError($response)) {
+            if (!$refreshToken && $response->getStatusCode() === Response::HTTP_UNAUTHORIZED) {
+                $this->authClient->setToken(null);
+
+                return $this->sendRequest(
+                    $method,
+                    $endpoint,
+                    $data,
+                    null,
+                    $headers,
+                    true
+                );
+            }
+
+            $exception = new RequestFailedException($response);
+
+            if ($responseModel) {
+                $body = (string)$response->getBody();
+                $body = json_decode($body, true);
+
+                $exception->setResponseModel($this->deserializeOne($body, $responseModel));
+            }
+
+            throw $exception;
+        }
+
+        return json_decode((string)$response->getBody(), true);
+    }
+
+    /**
+     * @param ResponseInterface $response
+     *
+     * @return bool
+     */
+    protected function responseIsError(ResponseInterface $response): bool
+    {
+        return $response->getStatusCode() >= 400 && $response->getStatusCode() <= 599;
+    }
+
+    /**
+     * @param array $item
+     * @param string $targetClass
+     *
+     * @return object
+     */
+    protected function deserializeOne(array $item, string $targetClass): object
+    {
+        return $this->serializer->deserialize(json_encode($item), $targetClass, 'json');
+    }
+
+    /**
+     * @param object $object
+     *
+     * @return array
+     */
+    protected function serializeOne(object $object): array
+    {
+        return json_decode($this->serializer->serialize($object, 'json'), true);
+    }
+
     /*****
      *
      * Begin API consumer methods
@@ -274,27 +243,53 @@ class RoyalMailShippingApiClient
      *****/
 
     /**
-     * @throws RequestFailedException
+     * @return string|null
      *
-     * @return array|Address[]
+     * @throws RequestFailedException
      */
-    public function getAddresses(): array
+    public function testToken(): ?string
     {
-        $response = $this->sendRequest(Request::METHOD_GET, 'addresses', null, AddressResponse::class);
+        $this->getToken();
 
-        return $this->deserializeMany($response, Address::class);
+        return $this->authClient->getToken();
+    }
+
+    /**
+     * @param Address $address
+     *
+     * @return AddressResponse|object
+     *
+     * @throws RequestFailedException
+     */
+    public function createAddress(Address $address): AddressResponse
+    {
+        $payload = $this->serializeOne($address);
+
+        $response = $this->sendRequest(
+            Request::METHOD_POST,
+            'addresses',
+            $payload,
+            AddressResponse::class
+        );
+
+        return $this->deserializeOne($response, AddressResponse::class);
     }
 
     /**
      * @param string $addressId
      *
-     * @throws RequestFailedException
-     *
      * @return object|Address
+     *
+     * @throws RequestFailedException
      */
     public function getAddress(string $addressId): Address
     {
-        $response = $this->sendRequest(Request::METHOD_GET, "addresses/{$addressId}", null, AddressResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_GET,
+            "addresses/$addressId",
+            null,
+            AddressResponse::class
+        );
 
         return $this->deserializeOne($response, Address::class);
     }
@@ -302,31 +297,20 @@ class RoyalMailShippingApiClient
     /**
      * @param Address $address
      *
-     * @throws RequestFailedException
-     *
      * @return AddressResponse|object
-     */
-    public function createAddress(Address $address): AddressResponse
-    {
-        $payload = $this->serializeOne($address);
-
-        $response = $this->sendRequest(Request::METHOD_POST, 'addresses', $payload, AddressResponse::class);
-
-        return $this->deserializeOne($response, AddressResponse::class);
-    }
-
-    /**
-     * @param Address $address
      *
      * @throws RequestFailedException
-     *
-     * @return AddressResponse|object
      */
     public function updateAddress(Address $address): AddressResponse
     {
         $payload = $this->serializeOne($address);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, "addresses/{$address->getAddressId()}", $payload, AddressResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            "addresses/{$address->getAddressId()}",
+            $payload,
+            AddressResponse::class
+        );
 
         return $this->deserializeOne($response, AddressResponse::class);
     }
@@ -334,25 +318,35 @@ class RoyalMailShippingApiClient
     /**
      * @param string $addressId
      *
-     * @throws RequestFailedException
-     *
      * @return AddressResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function deleteAddress(string $addressId): AddressResponse
     {
-        $response = $this->sendRequest(Request::METHOD_DELETE, "addresses/{$addressId}", null, AddressResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_DELETE,
+            "addresses/$addressId",
+            null,
+            AddressResponse::class
+        );
 
         return $this->deserializeOne($response, AddressResponse::class);
     }
 
     /**
-     * @throws RequestFailedException
-     *
      * @return array|Item[]
+     *
+     * @throws RequestFailedException
      */
     public function getItems(): array
     {
-        $response = $this->sendRequest(Request::METHOD_GET, 'items', null, ItemResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_GET,
+            'items',
+            null,
+            ItemResponse::class
+        );
 
         return $this->deserializeMany($response, Item::class);
     }
@@ -360,29 +354,56 @@ class RoyalMailShippingApiClient
     /**
      * @param string $itemId
      *
-     * @throws RequestFailedException
-     *
      * @return object|Item
+     *
+     * @throws RequestFailedException
      */
     public function getItem(string $itemId): Item
     {
-        $response = $this->sendRequest(Request::METHOD_GET, "items/{$itemId}", null, ItemResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_GET,
+            "items/$itemId",
+            null,
+            ItemResponse::class
+        );
 
         return $this->deserializeOne($response, Item::class);
     }
 
     /**
-     * @param Item $item
+     * @return array|Address[]
      *
      * @throws RequestFailedException
+     */
+    public function getAddresses(): array
+    {
+        $response = $this->sendRequest
+        (Request::METHOD_GET,
+            'addresses',
+            null,
+            AddressResponse::class
+        );
+
+        return $this->deserializeMany($response, Address::class);
+    }
+
+    /**
+     * @param Item $item
      *
      * @return ItemResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function createItem(Item $item): ItemResponse
     {
         $payload = $this->serializeOne($item);
 
-        $response = $this->sendRequest(Request::METHOD_POST, 'items', $payload, ItemResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_POST,
+            'items',
+            $payload,
+            ItemResponse::class
+        );
 
         return $this->deserializeOne($response, ItemResponse::class);
     }
@@ -390,15 +411,20 @@ class RoyalMailShippingApiClient
     /**
      * @param Item $item
      *
-     * @throws RequestFailedException
-     *
      * @return ItemResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function updateItem(Item $item): ItemResponse
     {
         $payload = $this->serializeOne($item);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, "items/{$item->getItemId()}", $payload, ItemResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            "items/{$item->getItemId()}",
+            $payload,
+            ItemResponse::class
+        );
 
         return $this->deserializeOne($response, ItemResponse::class);
     }
@@ -406,25 +432,35 @@ class RoyalMailShippingApiClient
     /**
      * @param string $itemId
      *
-     * @throws RequestFailedException
-     *
      * @return ItemResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function deleteItem(string $itemId): ItemResponse
     {
-        $response = $this->sendRequest(Request::METHOD_DELETE, "items/{$itemId}", null, ItemResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_DELETE,
+            "items/$itemId",
+            null,
+            ItemResponse::class
+        );
 
         return $this->deserializeOne($response, ItemResponse::class);
     }
 
     /**
-     * @throws RequestFailedException
-     *
      * @return array|Packaging[]
+     *
+     * @throws RequestFailedException
      */
     public function getPackagings(): array
     {
-        $response = $this->sendRequest(Request::METHOD_GET, 'packaging', null, PackagingResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_GET,
+            'packaging',
+            null,
+            PackagingResponse::class
+        );
 
         return $this->deserializeMany($response, Packaging::class);
     }
@@ -432,13 +468,18 @@ class RoyalMailShippingApiClient
     /**
      * @param string $packagingId
      *
-     * @throws RequestFailedException
-     *
      * @return object|Packaging
+     *
+     * @throws RequestFailedException
      */
     public function getPackaging(string $packagingId): Packaging
     {
-        $response = $this->sendRequest(Request::METHOD_GET, "packaging/{$packagingId}", null, PackagingResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_GET,
+            "packaging/$packagingId",
+            null,
+            PackagingResponse::class
+        );
 
         return $this->deserializeOne($response, Packaging::class);
     }
@@ -446,15 +487,20 @@ class RoyalMailShippingApiClient
     /**
      * @param Packaging $packaging
      *
-     * @throws RequestFailedException
-     *
      * @return PackagingResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function createPackaging(Packaging $packaging): PackagingResponse
     {
         $payload = $this->serializeOne($packaging);
 
-        $response = $this->sendRequest(Request::METHOD_POST, 'packaging', $payload, PackagingResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_POST,
+            'packaging',
+            $payload,
+            PackagingResponse::class
+        );
 
         return $this->deserializeOne($response, PackagingResponse::class);
     }
@@ -462,15 +508,19 @@ class RoyalMailShippingApiClient
     /**
      * @param Packaging $packaging
      *
-     * @throws RequestFailedException
-     *
      * @return PackagingResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function updatePackaging(Packaging $packaging): PackagingResponse
     {
         $payload = $this->serializeOne($packaging);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, "packaging/{$packaging->getPackagingId()}", $payload, PackagingResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            "packaging/{$packaging->getPackagingId()}",
+            $payload, PackagingResponse::class
+        );
 
         return $this->deserializeOne($response, PackagingResponse::class);
     }
@@ -478,13 +528,18 @@ class RoyalMailShippingApiClient
     /**
      * @param string $packagingId
      *
-     * @throws RequestFailedException
-     *
      * @return PackagingResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function deletePackaging(string $packagingId): PackagingResponse
     {
-        $response = $this->sendRequest(Request::METHOD_DELETE, "packaging/{$packagingId}", null, PackagingResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_DELETE,
+            "packaging/$packagingId",
+            null,
+            PackagingResponse::class
+        );
 
         return $this->deserializeOne($response, PackagingResponse::class);
     }
@@ -492,15 +547,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ManifestRequest $manifestRequest
      *
-     * @throws RequestFailedException
-     *
      * @return ManifestResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function manifestAll(ManifestRequest $manifestRequest): ManifestResponse
     {
         $payload = $this->serializeOne($manifestRequest);
 
-        $response = $this->sendRequest(Request::METHOD_POST, 'manifests', $payload, ManifestResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_POST,
+            'manifests',
+            $payload,
+            ManifestResponse::class
+        );
 
         return $this->deserializeOne($response, ManifestResponse::class);
     }
@@ -508,15 +568,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ManifestCarrierCodesRequest $manifestCarrierCodesRequest
      *
-     * @throws RequestFailedException
-     *
      * @return ManifestResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function manifestByCarrierCodes(ManifestCarrierCodesRequest $manifestCarrierCodesRequest): ManifestResponse
     {
         $payload = $this->serializeOne($manifestCarrierCodesRequest);
 
-        $response = $this->sendRequest(Request::METHOD_POST, 'manifests/bycarrier', $payload, ManifestResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_POST,
+            'manifests/bycarrier',
+            $payload,
+            ManifestResponse::class
+        );
 
         return $this->deserializeOne($response, ManifestResponse::class);
     }
@@ -524,15 +589,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ManifestServiceCodesRequest $manifestServiceCodesRequest
      *
-     * @throws RequestFailedException
-     *
      * @return ManifestResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function manifestByServiceCodes(ManifestServiceCodesRequest $manifestServiceCodesRequest): ManifestResponse
     {
         $payload = $this->serializeOne($manifestServiceCodesRequest);
 
-        $response = $this->sendRequest(Request::METHOD_POST, 'manifests/byservice', $payload, ManifestResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_POST,
+            'manifests/byservice',
+            $payload,
+            ManifestResponse::class
+        );
 
         return $this->deserializeOne($response, ManifestResponse::class);
     }
@@ -540,49 +610,64 @@ class RoyalMailShippingApiClient
     /**
      * @param Shipment $shipment
      *
-     * @throws RequestFailedException
-     *
      * @return object|ShipmentCreateResponse
+     *
+     * @throws RequestFailedException
      */
     public function createShipment(Shipment $shipment): ShipmentCreateResponse
     {
         $payload = $this->serializeOne($shipment);
 
-        $response = $this->sendRequest(Request::METHOD_POST, 'shipments', $payload, ShipmentCreateResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_POST,
+            'shipments',
+            $payload,
+            ShipmentCreateResponse::class
+        );
 
         return $this->deserializeOne($response, ShipmentCreateResponse::class);
     }
 
     /**
      * @param PrintDocumentRequest $printDocumentRequest
-     * @param string               $shipmentId
-     *
-     * @throws RequestFailedException
+     * @param string $shipmentId
      *
      * @return PrintDocumentResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function printShipmentDocument(PrintDocumentRequest $printDocumentRequest, string $shipmentId): PrintDocumentResponse
     {
         $payload = $this->serializeOne($printDocumentRequest);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, "shipments/$shipmentId/printDocument", $payload, PrintDocumentResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            "shipments/$shipmentId/printDocument",
+            $payload,
+            PrintDocumentResponse::class
+        );
 
         return $this->deserializeOne($response, PrintDocumentResponse::class);
     }
 
     /**
      * @param PrintLabelRequest $printLabelRequest
-     * @param string            $shipmentId
-     *
-     * @throws RequestFailedException
+     * @param string $shipmentId
      *
      * @return PrintLabelResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function printShipmentLabel(PrintLabelRequest $printLabelRequest, string $shipmentId): PrintLabelResponse
     {
         $payload = $this->serializeOne($printLabelRequest);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, "shipments/$shipmentId/printLabel", $payload, PrintLabelResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            "shipments/$shipmentId/printLabel",
+            $payload,
+            PrintLabelResponse::class
+        );
 
         return $this->deserializeOne($response, PrintLabelResponse::class);
     }
@@ -590,15 +675,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ShipmentCancelRequest $shipmentCancelRequest
      *
-     * @throws RequestFailedException
-     *
      * @return ShipmentsCancelResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function cancelShipment(ShipmentCancelRequest $shipmentCancelRequest): ShipmentsCancelResponse
     {
         $payload = $this->serializeOne($shipmentCancelRequest);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, 'shipments/cancel', $payload, ShipmentsCancelResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            'shipments/cancel',
+            $payload,
+            ShipmentsCancelResponse::class
+        );
 
         return $this->deserializeOne($response, ShipmentsCancelResponse::class);
     }
@@ -606,15 +696,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ShipmentCancelRequest[] $shipmentCancelRequests
      *
-     * @throws RequestFailedException
-     *
      * @return ShipmentsCancelResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function cancelShipments(array $shipmentCancelRequests): ShipmentsCancelResponse
     {
         $payload = $this->serializeMany($shipmentCancelRequests);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, 'shipments/cancel', $payload, ShipmentsCancelResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            'shipments/cancel',
+            $payload,
+            ShipmentsCancelResponse::class
+        );
 
         return $this->deserializeOne($response, ShipmentsCancelResponse::class);
     }
@@ -622,15 +717,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ShipmentDeferRequest $shipmentDeferRequest
      *
-     * @throws RequestFailedException
-     *
      * @return ShipmentsDeferResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function deferShipment(ShipmentDeferRequest $shipmentDeferRequest): ShipmentsDeferResponse
     {
         $payload = $this->serializeOne($shipmentDeferRequest);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, 'shipments/defer', $payload, ShipmentsDeferResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            'shipments/defer',
+            $payload,
+            ShipmentsDeferResponse::class
+        );
 
         return $this->deserializeOne($response, ShipmentsDeferResponse::class);
     }
@@ -638,15 +738,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ShipmentDeferRequest[] $shipmentDeferRequests
      *
-     * @throws RequestFailedException
-     *
      * @return ShipmentsDeferResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function deferShipments(array $shipmentDeferRequests): ShipmentsDeferResponse
     {
         $payload = $this->serializeMany($shipmentDeferRequests);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, 'shipments/defer', $payload, ShipmentsDeferResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            'shipments/defer',
+            $payload,
+            ShipmentsDeferResponse::class
+        );
 
         return $this->deserializeOne($response, ShipmentsDeferResponse::class);
     }
@@ -654,15 +759,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ShipmentHoldRequest $shipmentHoldRequest
      *
-     * @throws RequestFailedException
-     *
      * @return ShipmentsHoldResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function holdShipment(ShipmentHoldRequest $shipmentHoldRequest): ShipmentsHoldResponse
     {
         $payload = $this->serializeOne($shipmentHoldRequest);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, 'shipments/hold', $payload, ShipmentsHoldResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            'shipments/hold',
+            $payload,
+            ShipmentsHoldResponse::class
+        );
 
         return $this->deserializeOne($response, ShipmentsHoldResponse::class);
     }
@@ -670,15 +780,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ShipmentHoldRequest[] $shipmentHoldRequests
      *
-     * @throws RequestFailedException
-     *
      * @return ShipmentsHoldResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function holdShipments(array $shipmentHoldRequests): ShipmentsHoldResponse
     {
         $payload = $this->serializeMany($shipmentHoldRequests);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, 'shipments/hold', $payload, ShipmentsHoldResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            'shipments/hold',
+            $payload,
+            ShipmentsHoldResponse::class
+        );
 
         return $this->deserializeOne($response, ShipmentsHoldResponse::class);
     }
@@ -686,15 +801,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ShipmentsReleaseRequest $shipmentsReleaseRequest
      *
-     * @throws RequestFailedException
-     *
      * @return ShipmentsReleaseResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function releaseShipments(ShipmentsReleaseRequest $shipmentsReleaseRequest): ShipmentsReleaseResponse
     {
         $payload = $this->serializeOne($shipmentsReleaseRequest);
 
-        $response = $this->sendRequest(Request::METHOD_PUT, 'shipments/release', $payload, ShipmentsReleaseResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_PUT,
+            'shipments/release',
+            $payload,
+            ShipmentsReleaseResponse::class
+        );
 
         return $this->deserializeOne($response, ShipmentsReleaseResponse::class);
     }
@@ -702,15 +822,20 @@ class RoyalMailShippingApiClient
     /**
      * @param ServiceAvailabilityShipment $shipment
      *
-     * @throws RequestFailedException
-     *
      * @return ServiceAvailabilityResponse|object
+     *
+     * @throws RequestFailedException
      */
     public function getShipmentServiceAvailability(ServiceAvailabilityShipment $shipment): ServiceAvailabilityResponse
     {
         $payload = $this->serializeOne($shipment);
 
-        $response = $this->sendRequest(Request::METHOD_POST, 'shipments/serviceAvailability', $payload, ServiceAvailabilityResponse::class);
+        $response = $this->sendRequest(
+            Request::METHOD_POST,
+            'shipments/serviceAvailability',
+            $payload,
+            ServiceAvailabilityResponse::class
+        );
 
         return $this->deserializeOne($response, ServiceAvailabilityResponse::class);
     }
