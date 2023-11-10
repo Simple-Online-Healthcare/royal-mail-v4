@@ -165,16 +165,13 @@ class RoyalMailShippingApiClient
     protected function sendAuthRequest(): array
     {
         $response = $this->httpClient->post(self::AUTH_URL, [
-            'body' => json_encode(
-                [
-                    'grant_type' => 'client_credentials',
-                    'client_id' => $this->authClient->getClientId(),
-                    'client_secret' => $this->authClient->getClientSecret(),
-                ]
-            ),
+            'body' => [
+                'grant_type' => 'client_credentials',
+                'client_id' => $this->authClient->getClientId(),
+                'client_secret' => $this->authClient->getClientSecret(),
+            ],
             'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
+                'Content-Type' => 'application/x-www-form-urlencoded',
             ],
         ]);
 
