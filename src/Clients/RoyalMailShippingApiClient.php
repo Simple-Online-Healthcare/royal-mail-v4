@@ -185,6 +185,8 @@ class RoyalMailShippingApiClient
         dump($data);
         dump($headers);
 
+        dd('stop');
+
         /** @var ResponseInterface $response */
         $response = $this->httpClient->{$httpMethod}($endpoint, [
             'body' => $data ? json_encode($data) : null,
