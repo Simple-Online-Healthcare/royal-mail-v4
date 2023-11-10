@@ -145,7 +145,7 @@ class RoyalMailShippingApiClient
     {
         $response = $this->sendAuthRequest();
 
-        $this->authClient->setToken($response['token']);
+        $this->authClient->setToken($response['access_token']);
 
         return $this->authClient->getToken();
     }
