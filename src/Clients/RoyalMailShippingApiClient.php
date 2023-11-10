@@ -40,7 +40,7 @@ use Symfony\Component\HttpFoundation\Response;
 class RoyalMailShippingApiClient
 {
     protected const AUTH_URL = 'https://authentication.proshipping.net/connect/token';
-    protected const BASE_URL = 'https://api.royalmail.net/shipping/v3/';
+    protected const BASE_URL = 'https://api.proshipping.net/v4/';
 
     /**
      * @var RoyalMailShippingAuthClient
@@ -187,8 +187,6 @@ class RoyalMailShippingApiClient
      * @param string $endpoint
      * @param array|null $data
      * @param string|null $responseModel
-     * @param array|null $headers
-     * @param bool $refreshToken
      *
      * @return array
      *
@@ -198,44 +196,49 @@ class RoyalMailShippingApiClient
         string  $httpMethod,
         string  $endpoint,
         ?array  $data = null,
-        ?string $responseModel = null,
-        ?array  $headers = null,
-        bool    $refreshToken = false
+        ?string $responseModel = null
     ): array
     {
+        if (!$token = $this->authClient->getToken()) {
+            $this->refreshToken();
+        }
+
         /** @var ResponseInterface $response */
         $response = $this->httpClient->{$httpMethod}($endpoint, [
             'body' => $data ? json_encode($data) : null,
             'headers' => [
+                'Authorization' . "Bearer $token",
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
-            ] + $headers ?: [],
+            ],
         ]);
 
         if ($this->responseIsError($response)) {
-            if (!$refreshToken && $response->getStatusCode() === Response::HTTP_UNAUTHORIZED) {
+            if ($response->getStatusCode() === Response::HTTP_UNAUTHORIZED) {
                 $this->authClient->setToken(null);
+                $this->refreshToken();
 
-                return $this->sendRequest(
-                    $httpMethod,
-                    $endpoint,
-                    $data,
-                    null,
-                    $headers,
-                    true
-                );
+                /** @var ResponseInterface $response */
+                $response = $this->httpClient->{$httpMethod}($endpoint, [
+                    'body' => $data ? json_encode($data) : null,
+                    'headers' => [
+                        'Authorization' . "Bearer $token",
+                        'Accept' => 'application/json',
+                        'Content-Type' => 'application/json',
+                    ],
+                ]);
+            } else {
+                $exception = new RequestFailedException($response);
+
+                if ($responseModel) {
+                    $body = (string)$response->getBody();
+                    $body = json_decode($body, true);
+
+                    $exception->setResponseModel($this->deserializeOne($body, $responseModel));
+                }
+
+                throw $exception;
             }
-
-            $exception = new RequestFailedException($response);
-
-            if ($responseModel) {
-                $body = (string)$response->getBody();
-                $body = json_decode($body, true);
-
-                $exception->setResponseModel($this->deserializeOne($body, $responseModel));
-            }
-
-            throw $exception;
         }
 
         return json_decode((string)$response->getBody(), true);
@@ -656,7 +659,7 @@ class RoyalMailShippingApiClient
 
         $response = $this->sendRequest(
             Request::METHOD_POST,
-            'shipments',
+            $this->buildEndpoint(self::BASE_URL, 'shipments/rm'),
             $payload,
             ShipmentCreateResponse::class
         );
