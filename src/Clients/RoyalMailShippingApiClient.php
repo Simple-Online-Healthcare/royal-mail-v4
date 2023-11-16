@@ -213,6 +213,12 @@ class RoyalMailShippingApiClient
             ],
         ]);
 
+        dd([
+            'Authorization' => "bearer $token",
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+        ]);
+
         dd($response);
 
         if ($this->responseIsError($response)) {
