@@ -660,16 +660,16 @@ class RoyalMailShippingApiClient
         $data = [
             "ShipmentInformation" => [
                 "ContentType" => "NDX",
-                "ServiceCode" => "CRL1",
-                "DescriptionOfGoods" => "Clothes",
-                "ShipmentDate" => "2023-04-25",
+                "ServiceCode" => "TPSS",
+                "DescriptionOfGoods" => "Pharmacy items.",
+                "ShipmentDate" => "2023-11-16",
                 "WeightUnitOfMeasure" => "KG",
                 "DimensionsUnitOfMeasure" => "CM",
             ],
             "Shipper" => [
                 "ShippingAccountId" => "3bddc02b-3b51-4605-ba6c-5e64dcd3a43f",
                 "ShippingLocationId" => "9557b686-104f-4d39-b538-f4fce4986f22",
-                "Reference1" => "SampleOrder"
+                "Reference1" => "TestOrder"
             ],
             "Destination" => [
                 "Address" => [
