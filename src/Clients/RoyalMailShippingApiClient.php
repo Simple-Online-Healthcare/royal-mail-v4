@@ -672,7 +672,7 @@ class RoyalMailShippingApiClient
         $data = [
             "ShipmentInformation" => [
                 "ContentType" => "NDX",
-                "ServiceCode" => "TPSS",
+                "ServiceCode" => "SD1",
                 "DescriptionOfGoods" => "Pharmacy items.",
                 "ShipmentDate" => "2023-11-16",
                 "WeightUnitOfMeasure" => "KG",
