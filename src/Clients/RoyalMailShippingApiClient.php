@@ -213,8 +213,6 @@ class RoyalMailShippingApiClient
             ],
         ]);
 
-        dd($response);
-
         if ($this->responseIsError($response)) {
             if ($response->getStatusCode() === Response::HTTP_UNAUTHORIZED) {
                 $this->authClient->setToken(null);
@@ -657,6 +655,8 @@ class RoyalMailShippingApiClient
      */
     public function createShipment(Shipment $shipment): ShipmentCreateResponse
     {
+        dd('CREATE SHIPMENT');
+
         $payload = $this->serializeOne($shipment);
 
         $response = $this->sendRequest(
