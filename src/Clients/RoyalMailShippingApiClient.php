@@ -199,7 +199,7 @@ class RoyalMailShippingApiClient
         ?string $responseModel = null
     ): array
     {
-        if (!$token = $this->authClient->getToken()) {
+        if (!$this->authClient->getToken()) {
             $this->refreshToken();
         }
 
@@ -207,16 +207,10 @@ class RoyalMailShippingApiClient
         $response = $this->httpClient->{$httpMethod}($endpoint, [
             'body' => $data ? json_encode($data) : null,
             'headers' => [
-                'Authorization' => "bearer $token",
+                'Authorization' => "bearer {$this->authClient->getToken()}",
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ],
-        ]);
-
-        dd([
-            'Authorization' => "bearer $token",
-            'Accept' => 'application/json',
-            'Content-Type' => 'application/json',
         ]);
 
         dd($response);
