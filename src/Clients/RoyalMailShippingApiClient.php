@@ -207,7 +207,7 @@ class RoyalMailShippingApiClient
         $response = $this->httpClient->{$httpMethod}($endpoint, [
             'body' => $data ? json_encode($data) : null,
             'headers' => [
-                'Authorization' => "Bearer $token",
+                'Authorization' => "bearer $token",
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ],
@@ -655,14 +655,52 @@ class RoyalMailShippingApiClient
      */
     public function createShipment(Shipment $shipment): ShipmentCreateResponse
     {
-        dd('CREATE SHIPMENT');
+        $data = [
+            "ShipmentInformation" => [
+                "ContentType" => "NDX",
+                "ServiceCode" => "CRL1",
+                "DescriptionOfGoods" => "Clothes",
+                "ShipmentDate" => "2023-04-25",
+                "WeightUnitOfMeasure" => "KG",
+                "DimensionsUnitOfMeasure" => "CM",
+            ],
+            "Shipper" => [
+                "ShippingAccountId" => "3bddc02b-3b51-4605-ba6c-5e64dcd3a43f",
+                "ShippingLocationId" => "9557b686-104f-4d39-b538-f4fce4986f22",
+                "Reference1" => "SampleOrder"
+            ],
+            "Destination" => [
+                "Address" => [
+                    "ContactName" => "John Doe",
+                    "ContactEmail" => "john.doe@example.com",
+                    "ContactPhone" => "01234567890",
+                    "Line1" => "185 Farringdon Road",
+                    "Town" => "London",
+                    "Postcode" => "EC1A 1AA",
+                    "CountryCode" => "GB"
+                ],
+            ],
 
-        $payload = $this->serializeOne($shipment);
+            "Packages" => [
+                "PackageType" => "Parcel",
+                "DeclaredWeight" => "1.5",
+                "Dimensions" => [
+                    "Length" => "40.0",
+                    "Width" => "30.0",
+                    "Height" => "20.0"
+                ],
+            ]
+        ];
+
+        $orderedPackages = array($data["Packages"]);
+        $data["Packages"] = $orderedPackages;
+
+//        $payload = $this->serializeOne($shipment);
 
         $response = $this->sendRequest(
             Request::METHOD_POST,
             $this->buildEndpoint(self::BASE_URL, 'shipments/rm'),
-            $payload,
+            $data,
             ShipmentCreateResponse::class
         );
 
