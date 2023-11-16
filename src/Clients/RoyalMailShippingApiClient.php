@@ -203,6 +203,18 @@ class RoyalMailShippingApiClient
             $this->refreshToken();
         }
 
+        dump($httpMethod);
+
+        dump($endpoint);
+
+        dump([
+            'Authorization' => "bearer {$this->authClient->getToken()}",
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+        ]);
+
+        dump($data);
+
         /** @var ResponseInterface $response */
         $response = $this->httpClient->{$httpMethod}($endpoint, [
             'body' => $data ? json_encode($data) : null,
@@ -213,7 +225,7 @@ class RoyalMailShippingApiClient
             ],
         ]);
 
-        dd($response->getBody());
+        dd($response);
 
         if ($this->responseIsError($response)) {
             if ($response->getStatusCode() === Response::HTTP_UNAUTHORIZED) {
