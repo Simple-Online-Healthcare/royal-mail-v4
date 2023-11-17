@@ -26,6 +26,13 @@ class ShipmentCreateResponse
     protected ?array $errors = null;
 
     /**
+     * @JMS\Type("string")
+     *
+     * @var string
+     */
+    protected string $labelFormat;
+
+    /**
      * @JMS\Type("array<SimpleOnlineHealthcare\RoyalMail\Models\Shipping\PackageResponse>")
      *
      * @var PackageResponse[]|null
@@ -86,6 +93,14 @@ class ShipmentCreateResponse
         $this->errors[] = $error;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLabelFormat(): string
+    {
+        return $this->labelFormat;
     }
 
     /**
