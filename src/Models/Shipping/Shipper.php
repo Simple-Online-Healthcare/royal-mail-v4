@@ -15,6 +15,11 @@ class Shipper
     protected string $reference1;
 
     /**
+     * @var string
+     */
+    protected string $shippingLocationId;
+
+    /**
      * @return string
      */
     public function getShippingAccountId(): string
@@ -50,6 +55,26 @@ class Shipper
     public function setReference1(string $reference1): Shipper
     {
         $this->reference1 = $reference1;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getShippingLocationId(): string
+    {
+        return $this->shippingLocationId;
+    }
+
+    /**
+     * @param string $shippingLocationId
+     *
+     * @return Shipper
+     */
+    public function setShippingLocationId(string $shippingLocationId): Shipper
+    {
+        $this->shippingLocationId = $shippingLocationId;
 
         return $this;
     }
