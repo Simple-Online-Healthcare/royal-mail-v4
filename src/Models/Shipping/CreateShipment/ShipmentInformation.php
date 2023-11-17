@@ -2,23 +2,10 @@
 
 namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment;
 
-use JMS\Serializer\Annotation as JMS;
-use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\ShipmentItem;
-
-/**
- * Shipment Information. Overall package details, item details and requested service information in a shipment request.
- *     -  It is important to ensure accurate information is supplied to ensure correct handling by different customs around the world.
- *
- * Required properties: ShipmentDate, ServiceCode, TotalPackages, TotalWeight
- */
 class ShipmentInformation
 {
     const PRODUCT_DOCUMENTS = 'DOX';
     const PRODUCT_OTHER = 'NDX';
-
-    const SHIPMENT_ACTION_PROCESS = 'Process';
-    const SHIPMENT_ACTION_CREATE = 'Create';
-    const SHIPMENT_ACTION_ALLOCATE = 'Allocate';
 
     const LABEL_FORMAT_PDF = 'PDF';
     const LABEL_FORMAT_PNG = 'PNG';
@@ -27,236 +14,57 @@ class ShipmentInformation
     const LABEL_FORMAT_ZPL300DPI = 'ZPL300DPI';
 
     /**
-     * Shipment Date
-     *     - Date of despatch - YYYY-MM-DD.
-     *     - Cannot be in the past. Max 28 days in the future.
-     *
-     * example: 2019-01-16
-     * format: date
-     *
-     * @JMS\Type("string")
-     *
      * @var string
      */
-    protected $shipmentDate;
+    protected string $contentType = self::PRODUCT_OTHER;
 
     /**
-     * Service Code
-     *     - Must be a valid system service code OR a customer mapped service code.
-     *
-     * example: TPLN
-     * maxLength: 10
-     *
-     * @JMS\Type("string")
-     *
      * @var string
      */
-    protected $serviceCode;
+    protected string $serviceCode;
 
     /**
-     * Service Options
-     *     - Only required if you have more than 1 Royal Mail Posting Location.
-     *     - Allows you to add enhancements, specify the posting location, change the service level and specify a service format.
-     *
-     * @JMS\Type("SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\ServiceOptions")
-     *
-     * @var ServiceOptions|null
+     * @var string
      */
-    protected $serviceOptions;
+    protected string $descriptionOfGoods;
 
     /**
-     * Number of Packages
-     *     - The total number of packages.
-     *
-     * example: 1
-     * format: int32
-     *
-     * @JMS\Type("int")
-     *
-     * @var int
+     * @var string
+     * example: 2023-12-31
      */
-    protected $totalPackages;
+    protected string $shipmentDate;
 
     /**
-     * Total Weight
-     *     - The total weight of the shipment including packaging. Validated againt package weight.
-     *     - Min weight: 1 gram.
-     *     - *Optional/Overwritten for Average Weight Services - Average Weight Customers only.*
-     *
-     * example: 2.2
-     * format: double
-     *
-     * @JMS\Type("float")
-     *
-     * @var float
+     * @var string
      */
-    protected $totalWeight;
+    protected string $weightUnitOfMeasure;
 
     /**
-     * Weight Unit of Measure
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
+     * @var string
      */
-    protected $weightUnitOfMeasure;
+    protected string $dimensionsUnitOfMeasure;
 
     /**
-     * Shipment/Product type being shipped
-     *     - **DOX** - Documents Only
-     *     - **NDX** - All other shipment product types
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $product;
-
-    /**
-     * Description of Goods
-     *     - General description of the goods being sent.
-     *     - Required for Non-Document International and BFPO Shipments.
-     *     - Ignored for Documents Only shipments.
-     *
-     * example: Clothing
-     * maxLength: 70
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $descriptionOfGoods;
-
-    /**
-     * Reason For Export
-     *     - Required for International Shipments and BFPO (British Forces Post Office).
-     *
-     * example: Sale of goods
-     * maxLength: 250
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $reasonForExport;
-
-    /**
-     * Total Shipment Value
-     *     - Required for Non-Document International and BFPO Shipments.
-     *     - Ignored for Documents Only shipments.
-     *
-     * example: 39.98
-     * format: double
-     *
-     * @JMS\Type("float")
-     *
-     * @var float|null
-     */
-    protected $value;
-
-    /**
-     * Currency
-     *     - This currency will be used for all values across the shipment request.
-     *     - 3 digit ISO Currency Code.
-     *     - Required for Non-Document International and BFPO Shipments, or when values are provided.
-     *     - Ignored for Documents Only shipments.
-     *
-     * example: GBP
-     * minLength: 3
-     * maxLength: 3
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $currency;
-
-    /**
-     * Requested Label Format
-     *     - *DATASTREAM is only available if it has been activated on your account.*
-     *     - Ignored if ShipmentAction set to Create or Allocate.
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $labelFormat;
-
-    /**
-     * Silent Print Profile
-     *     - If present, resulting labels will be printed using this profile.
-     *
-     * example: 75b59db8-3cd3-4578-888e-54be016f07cc
-     * format: uuid
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $silentPrintProfile;
-
-    /**
-     * Shipment Action
-     *     - **Process** - Shipment created and processed, ready for manifesting. Label and tracking number returned.
-     *     - **Create** - Shipment created as unprocessed, ready for scanning. Scanning will create label and tracking number and move shipment to processed.
-     *     - **Allocate** - Shipment created as unprocessed with tracking number allocated and returned and label created but not returned. Scanning will return label and move shipment to processed.
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $shipmentAction;
-
-    /**
-     * Shipment Packages
-     *     - The packages in the shipment.
-     *     - Required if TotalPackages is more than 1.
-     *
-     * @JMS\Type("array<SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\ShipmentPackage>")
-     *
-     * @var ShipmentPackage[]|null
-     */
-    protected $packages;
-
-    /**
-     * Shipment Items
-     *     - The items in the shipment.
-     *     - Required for Non-Document International Shipments and BFPO (British Forces Post Office).
-     *     - Ignored for Documents Only shipments.
-     *
-     * @JMS\Type("array<SimpleOnlineHealthcare\RoyalMail\Models\Shipping\ShipmentItem>")
-     *
-     * @var ShipmentItem[]|null
-     */
-    protected $items;
-
-    /**
-     * Get shipmentDate
-     *
      * @return string
      */
-    public function getShipmentDate(): string
+    public function getContentType(): string
     {
-        return $this->shipmentDate;
+        return $this->contentType;
     }
 
     /**
-     * Set shipmentDate
+     * @param string $contentType
      *
-     * @param string $shipmentDate
-     *
-     * @return $this
+     * @return ShipmentInformation
      */
-    public function setShipmentDate(string $shipmentDate): self
+    public function setContentType(string $contentType): ShipmentInformation
     {
-        $this->shipmentDate = $shipmentDate;
+        $this->contentType = $contentType;
 
         return $this;
     }
 
     /**
-     * Get serviceCode
-     *
      * @return string
      */
     public function getServiceCode(): string
@@ -265,13 +73,11 @@ class ShipmentInformation
     }
 
     /**
-     * Set serviceCode
-     *
      * @param string $serviceCode
      *
-     * @return $this
+     * @return ShipmentInformation
      */
-    public function setServiceCode(string $serviceCode): self
+    public function setServiceCode(string $serviceCode): ShipmentInformation
     {
         $this->serviceCode = $serviceCode;
 
@@ -279,143 +85,19 @@ class ShipmentInformation
     }
 
     /**
-     * Get serviceOptions
-     *
-     * @return ServiceOptions|null
+     * @return string
      */
-    public function getServiceOptions(): ?ServiceOptions
-    {
-        return $this->serviceOptions;
-    }
-
-    /**
-     * Set serviceOptions
-     *
-     * @param ServiceOptions|null $serviceOptions
-     *
-     * @return $this
-     */
-    public function setServiceOptions(?ServiceOptions $serviceOptions): self
-    {
-        $this->serviceOptions = $serviceOptions;
-
-        return $this;
-    }
-
-    /**
-     * Get totalPackages
-     *
-     * @return int
-     */
-    public function getTotalPackages(): int
-    {
-        return $this->totalPackages;
-    }
-
-    /**
-     * Set totalPackages
-     *
-     * @param int $totalPackages
-     *
-     * @return $this
-     */
-    public function setTotalPackages(int $totalPackages): self
-    {
-        $this->totalPackages = $totalPackages;
-
-        return $this;
-    }
-
-    /**
-     * Get totalWeight
-     *
-     * @return float
-     */
-    public function getTotalWeight(): float
-    {
-        return $this->totalWeight;
-    }
-
-    /**
-     * Set totalWeight
-     *
-     * @param float $totalWeight
-     *
-     * @return $this
-     */
-    public function setTotalWeight(float $totalWeight): self
-    {
-        $this->totalWeight = $totalWeight;
-
-        return $this;
-    }
-
-    /**
-     * Get weightUnitOfMeasure
-     *
-     * @return string|null
-     */
-    public function getWeightUnitOfMeasure(): ?string
-    {
-        return $this->weightUnitOfMeasure;
-    }
-
-    /**
-     * Set weightUnitOfMeasure
-     *
-     * @param string|null $weightUnitOfMeasure
-     *
-     * @return $this
-     */
-    public function setWeightUnitOfMeasure(?string $weightUnitOfMeasure): self
-    {
-        $this->weightUnitOfMeasure = $weightUnitOfMeasure;
-
-        return $this;
-    }
-
-    /**
-     * Get product
-     *
-     * @return string|null
-     */
-    public function getProduct(): ?string
-    {
-        return $this->product;
-    }
-
-    /**
-     * Set product
-     *
-     * @param string|null $product
-     *
-     * @return $this
-     */
-    public function setProduct(?string $product): self
-    {
-        $this->product = $product;
-
-        return $this;
-    }
-
-    /**
-     * Get descriptionOfGoods
-     *
-     * @return string|null
-     */
-    public function getDescriptionOfGoods(): ?string
+    public function getDescriptionOfGoods(): string
     {
         return $this->descriptionOfGoods;
     }
 
     /**
-     * Set descriptionOfGoods
+     * @param string $descriptionOfGoods
      *
-     * @param string|null $descriptionOfGoods
-     *
-     * @return $this
+     * @return ShipmentInformation
      */
-    public function setDescriptionOfGoods(?string $descriptionOfGoods): self
+    public function setDescriptionOfGoods(string $descriptionOfGoods): ShipmentInformation
     {
         $this->descriptionOfGoods = $descriptionOfGoods;
 
@@ -423,233 +105,61 @@ class ShipmentInformation
     }
 
     /**
-     * Get reasonForExport
-     *
-     * @return string|null
+     * @return string
      */
-    public function getReasonForExport(): ?string
+    public function getShipmentDate(): string
     {
-        return $this->reasonForExport;
+        return $this->shipmentDate;
     }
 
     /**
-     * Set reasonForExport
+     * @param string $shipmentDate
      *
-     * @param string|null $reasonForExport
-     *
-     * @return $this
+     * @return ShipmentInformation
      */
-    public function setReasonForExport(?string $reasonForExport): self
+    public function setShipmentDate(string $shipmentDate): ShipmentInformation
     {
-        $this->reasonForExport = $reasonForExport;
+        $this->shipmentDate = $shipmentDate;
 
         return $this;
     }
 
     /**
-     * Get value
-     *
-     * @return float|null
+     * @return string
      */
-    public function getValue(): ?float
+    public function getWeightUnitOfMeasure(): string
     {
-        return $this->value;
+        return $this->weightUnitOfMeasure;
     }
 
     /**
-     * Set value
+     * @param string $weightUnitOfMeasure
      *
-     * @param float|null $value
-     *
-     * @return $this
+     * @return ShipmentInformation
      */
-    public function setValue(?float $value): self
+    public function setWeightUnitOfMeasure(string $weightUnitOfMeasure): ShipmentInformation
     {
-        $this->value = $value;
+        $this->weightUnitOfMeasure = $weightUnitOfMeasure;
 
         return $this;
     }
 
     /**
-     * Get currency
-     *
-     * @return string|null
+     * @return string
      */
-    public function getCurrency(): ?string
+    public function getDimensionsUnitOfMeasure(): string
     {
-        return $this->currency;
+        return $this->dimensionsUnitOfMeasure;
     }
 
     /**
-     * Set currency
+     * @param string $dimensionsUnitOfMeasure
      *
-     * @param string|null $currency
-     *
-     * @return $this
+     * @return ShipmentInformation
      */
-    public function setCurrency(?string $currency): self
+    public function setDimensionsUnitOfMeasure(string $dimensionsUnitOfMeasure): ShipmentInformation
     {
-        $this->currency = $currency;
-
-        return $this;
-    }
-
-    /**
-     * Get labelFormat
-     *
-     * @return string|null
-     */
-    public function getLabelFormat(): ?string
-    {
-        return $this->labelFormat;
-    }
-
-    /**
-     * Set labelFormat
-     *
-     * @param string|null $labelFormat
-     *
-     * @return $this
-     */
-    public function setLabelFormat(?string $labelFormat): self
-    {
-        $this->labelFormat = $labelFormat;
-
-        return $this;
-    }
-
-    /**
-     * Get silentPrintProfile
-     *
-     * @return string|null
-     */
-    public function getSilentPrintProfile(): ?string
-    {
-        return $this->silentPrintProfile;
-    }
-
-    /**
-     * Set silentPrintProfile
-     *
-     * @param string|null $silentPrintProfile
-     *
-     * @return $this
-     */
-    public function setSilentPrintProfile(?string $silentPrintProfile): self
-    {
-        $this->silentPrintProfile = $silentPrintProfile;
-
-        return $this;
-    }
-
-    /**
-     * Get shipmentAction
-     *
-     * @return string|null
-     */
-    public function getShipmentAction(): ?string
-    {
-        return $this->shipmentAction;
-    }
-
-    /**
-     * Set shipmentAction
-     *
-     * @param string|null $shipmentAction
-     *
-     * @return $this
-     */
-    public function setShipmentAction(?string $shipmentAction): self
-    {
-        $this->shipmentAction = $shipmentAction;
-
-        return $this;
-    }
-
-    /**
-     * Get packages
-     *
-     * @return ShipmentPackage[]|null
-     */
-    public function getPackages(): ?array
-    {
-        return $this->packages;
-    }
-
-    /**
-     * Set packages
-     *
-     * @param ShipmentPackage[]|null $packages
-     *
-     * @return $this
-     */
-    public function setPackages(?array $packages): self
-    {
-        $this->packages = $packages;
-
-        return $this;
-    }
-
-    /**
-     * Add package
-     *
-     * @var mixed
-     *
-     * @param mixed $package
-     *
-     * @return $this
-     */
-    public function addPackage($package): self
-    {
-        if (!is_array($this->packages)) {
-            $this->packages = [];
-        }
-
-        $this->packages[] = $package;
-
-        return $this;
-    }
-
-    /**
-     * Get items
-     *
-     * @return ShipmentItem[]|null
-     */
-    public function getItems(): ?array
-    {
-        return $this->items;
-    }
-
-    /**
-     * Set items
-     *
-     * @param ShipmentItem[]|null $items
-     *
-     * @return $this
-     */
-    public function setItems(?array $items): self
-    {
-        $this->items = $items;
-
-        return $this;
-    }
-
-    /**
-     * Add item
-     *
-     * @var mixed
-     *
-     * @param mixed $item
-     *
-     * @return $this
-     */
-    public function addItem($item): self
-    {
-        if (!is_array($this->items)) {
-            $this->items = [];
-        }
-
-        $this->items[] = $item;
+        $this->dimensionsUnitOfMeasure = $dimensionsUnitOfMeasure;
 
         return $this;
     }
