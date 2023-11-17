@@ -637,7 +637,7 @@ class RoyalMailShippingApiClient
             ShipmentCreateResponse::class
         );
 
-        dd($this->deserializeOne($response, ShipmentCreateResponse::class)->getPackages()[0]);
+        dd($this->deserializeOne($response, ShipmentCreateResponse::class)->getPackages()[0]->getLabelFormat());
     }
 
     /**
