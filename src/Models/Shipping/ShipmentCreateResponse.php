@@ -28,9 +28,16 @@ class ShipmentCreateResponse
     /**
      * @JMS\Type("string")
      *
-     * @var string
+     * @var string|null
      */
-    protected string $labelFormat;
+    protected ?string $labels = null;
+
+    /**
+     * @JMS\Type("string")
+     *
+     * @var string|null
+     */
+    protected ?string $labelFormat = null;
 
     /**
      * @JMS\Type("array<SimpleOnlineHealthcare\RoyalMail\Models\Shipping\PackageResponse>")
@@ -96,9 +103,17 @@ class ShipmentCreateResponse
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getLabelFormat(): string
+    public function getLabels(): ?string
+    {
+        return $this->labels;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getLabelFormat(): ?string
     {
         return $this->labelFormat;
     }
