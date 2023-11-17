@@ -222,8 +222,6 @@ class RoyalMailShippingApiClient
             ],
         ]);
 
-        dd($response->getBody()->getContents());
-
         if ($this->responseIsError($response)) {
             if ($response->getStatusCode() === Response::HTTP_UNAUTHORIZED) {
                 $this->authClient->setToken(null);
@@ -639,7 +637,7 @@ class RoyalMailShippingApiClient
             ShipmentCreateResponse::class
         );
 
-        return $this->deserializeOne($response, ShipmentCreateResponse::class);
+        dd($this->deserializeOne($response, ShipmentCreateResponse::class));
     }
 
     /**
