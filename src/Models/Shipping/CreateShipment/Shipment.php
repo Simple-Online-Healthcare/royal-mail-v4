@@ -2,51 +2,31 @@
 
 namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment;
 
-use JMS\Serializer\Annotation as JMS;
 use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\Shipper;
 
-/**
- * Details of a shipment request.
- *
- * Required properties: Destination, ShipmentInformation
- */
 class Shipment
 {
     /**
-     * The Shipper
-     *     - Who and where the parcel is coming from.
-     *     - Optional. If not supplied, the posting location address will be used.
-     *
-     * @JMS\Type("SimpleOnlineHealthcare\RoyalMail\Models\Shipping\Shipper")
-     *
-     * @var Shipper|null
+     * @var Shipper
      */
-    protected $shipper;
+    protected Shipper $shipper;
 
     /**
-     * The Destination
-     *     - Who and where the parcel is going to.
-     *     - It is the shipper’s responsibility to provide accurate and concise information to ensure the best possible delivery experience for the consumer.
-     *
-     * @JMS\Type("SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\Destination")
-     *
      * @var Destination
      */
-    protected $destination;
+    protected Destination $destination;
 
     /**
-     * Shipment Information
-     *     - Overall package details and requested service information
-     *
-     * @JMS\Type("SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\ShipmentInformation")
-     *
      * @var ShipmentInformation
      */
-    protected $shipmentInformation;
+    protected ShipmentInformation $shipmentInformation;
 
     /**
-     * Get shipper
-     *
+     * @var ShipmentPackage[]
+     */
+    protected array $packages = [];
+
+    /**
      * @return Shipper|null
      */
     public function getShipper(): ?Shipper
@@ -55,8 +35,6 @@ class Shipment
     }
 
     /**
-     * Set shipper
-     *
      * @param Shipper|null $shipper
      *
      * @return $this
@@ -69,8 +47,6 @@ class Shipment
     }
 
     /**
-     * Get destination
-     *
      * @return Destination
      */
     public function getDestination(): Destination
@@ -79,8 +55,6 @@ class Shipment
     }
 
     /**
-     * Set destination
-     *
      * @param Destination $destination
      *
      * @return $this
@@ -93,8 +67,6 @@ class Shipment
     }
 
     /**
-     * Get shipmentInformation
-     *
      * @return ShipmentInformation
      */
     public function getShipmentInformation(): ShipmentInformation
@@ -103,8 +75,6 @@ class Shipment
     }
 
     /**
-     * Set shipmentInformation
-     *
      * @param ShipmentInformation $shipmentInformation
      *
      * @return $this
@@ -114,5 +84,25 @@ class Shipment
         $this->shipmentInformation = $shipmentInformation;
 
         return $this;
+    }
+
+    /**
+     * @param ShipmentPackage $package
+     *
+     * @return $this
+     */
+    public function addPackage(ShipmentPackage $package): self
+    {
+        $this->packages[] = $package;
+
+        return $this;
+    }
+
+    /**
+     * @return ShipmentPackage[]
+     */
+    public function getPackages(): array
+    {
+        return $this->packages;
     }
 }
