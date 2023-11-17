@@ -78,48 +78,23 @@ class RoyalMailShippingApiClient
      *
      *****/
 
-    /**
-     * @param string $base
-     * @param string $method
-     *
-     * @return string
-     */
-    protected function buildEndpoint(string $base, string $method): string
+    protected function buildClient(): void
     {
-        return "$base$method";
+        $this->httpClient = new HttpClient([
+            'http_errors' => false,
+        ]);
     }
 
     /**
-     * @param array $items
+     * @return string|null
      *
-     * @return array
+     * @throws RequestFailedException
      */
-    protected function serializeMany(array $items): array
+    public function testToken(): ?string
     {
-        $out = [];
+        $this->getToken();
 
-        foreach ($items as $item) {
-            $out[] = $this->serializeOne($item);
-        }
-
-        return $out;
-    }
-
-    /**
-     * @param array $items
-     * @param string $targetClass
-     *
-     * @return array
-     */
-    protected function deserializeMany(array $items, string $targetClass): array
-    {
-        $out = [];
-
-        foreach ($items as $item) {
-            $out[] = $this->deserializeOne($item, $targetClass);
-        }
-
-        return $out;
+        return $this->authClient->getToken();
     }
 
     /**
@@ -150,13 +125,6 @@ class RoyalMailShippingApiClient
         return $this->authClient->getToken();
     }
 
-    protected function buildClient(): void
-    {
-        $this->httpClient = new HttpClient([
-            'http_errors' => false,
-        ]);
-    }
-
     /**
      * @return array
      *
@@ -180,6 +148,47 @@ class RoyalMailShippingApiClient
         }
 
         return json_decode((string)$response->getBody(), true);
+    }
+
+    /**
+     * @param ResponseInterface $response
+     *
+     * @return bool
+     */
+    protected function responseIsError(ResponseInterface $response): bool
+    {
+        return $response->getStatusCode() >= 400 && $response->getStatusCode() <= 599;
+    }
+
+    /**
+     * @param Address $address
+     *
+     * @return AddressResponse|object
+     *
+     * @throws RequestFailedException
+     */
+    public function createAddress(Address $address): AddressResponse
+    {
+        $payload = $this->serializeOne($address);
+
+        $response = $this->sendRequest(
+            Request::METHOD_POST,
+            'addresses',
+            $payload,
+            AddressResponse::class
+        );
+
+        return $this->deserializeOne($response, AddressResponse::class);
+    }
+
+    /**
+     * @param object $object
+     *
+     * @return array
+     */
+    protected function serializeOne(object $object): array
+    {
+        return json_decode($this->serializer->serialize($object, 'json'), true);
     }
 
     /**
@@ -225,8 +234,6 @@ class RoyalMailShippingApiClient
             ],
         ]);
 
-        dd($response);
-
         if ($this->responseIsError($response)) {
             if ($response->getStatusCode() === Response::HTTP_UNAUTHORIZED) {
                 $this->authClient->setToken(null);
@@ -236,7 +243,7 @@ class RoyalMailShippingApiClient
                 $response = $this->httpClient->{$httpMethod}($endpoint, [
                     'body' => $data ? json_encode($data) : null,
                     'headers' => [
-                        'Authorization' . "Bearer $token",
+                        'Authorization' . "Bearer $this->authClient->getToken()",
                         'Accept' => 'application/json',
                         'Content-Type' => 'application/json',
                     ],
@@ -259,16 +266,6 @@ class RoyalMailShippingApiClient
     }
 
     /**
-     * @param ResponseInterface $response
-     *
-     * @return bool
-     */
-    protected function responseIsError(ResponseInterface $response): bool
-    {
-        return $response->getStatusCode() >= 400 && $response->getStatusCode() <= 599;
-    }
-
-    /**
      * @param array $item
      * @param string $targetClass
      *
@@ -277,55 +274,6 @@ class RoyalMailShippingApiClient
     protected function deserializeOne(array $item, string $targetClass): object
     {
         return $this->serializer->deserialize(json_encode($item), $targetClass, 'json');
-    }
-
-    /**
-     * @param object $object
-     *
-     * @return array
-     */
-    protected function serializeOne(object $object): array
-    {
-        return json_decode($this->serializer->serialize($object, 'json'), true);
-    }
-
-    /*****
-     *
-     * Begin API consumer methods
-     *
-     *****/
-
-    /**
-     * @return string|null
-     *
-     * @throws RequestFailedException
-     */
-    public function testToken(): ?string
-    {
-        $this->getToken();
-
-        return $this->authClient->getToken();
-    }
-
-    /**
-     * @param Address $address
-     *
-     * @return AddressResponse|object
-     *
-     * @throws RequestFailedException
-     */
-    public function createAddress(Address $address): AddressResponse
-    {
-        $payload = $this->serializeOne($address);
-
-        $response = $this->sendRequest(
-            Request::METHOD_POST,
-            'addresses',
-            $payload,
-            AddressResponse::class
-        );
-
-        return $this->deserializeOne($response, AddressResponse::class);
     }
 
     /**
@@ -346,6 +294,12 @@ class RoyalMailShippingApiClient
 
         return $this->deserializeOne($response, Address::class);
     }
+
+    /*****
+     *
+     * Begin API consumer methods
+     *
+     *****/
 
     /**
      * @param Address $address
@@ -402,6 +356,23 @@ class RoyalMailShippingApiClient
         );
 
         return $this->deserializeMany($response, Item::class);
+    }
+
+    /**
+     * @param array $items
+     * @param string $targetClass
+     *
+     * @return array
+     */
+    protected function deserializeMany(array $items, string $targetClass): array
+    {
+        $out = [];
+
+        foreach ($items as $item) {
+            $out[] = $this->deserializeOne($item, $targetClass);
+        }
+
+        return $out;
     }
 
     /**
@@ -669,56 +640,27 @@ class RoyalMailShippingApiClient
      */
     public function createShipment(Shipment $shipment): ShipmentCreateResponse
     {
-        $data = [
-            "ShipmentInformation" => [
-                "ContentType" => "NDX",
-                "ServiceCode" => "SD1",
-                "DescriptionOfGoods" => "Pharmacy items.",
-                "ShipmentDate" => "2023-11-16",
-                "WeightUnitOfMeasure" => "KG",
-                "DimensionsUnitOfMeasure" => "CM",
-            ],
-            "Shipper" => [
-                "ShippingAccountId" => "3bddc02b-3b51-4605-ba6c-5e64dcd3a43f",
-                "ShippingLocationId" => "9557b686-104f-4d39-b538-f4fce4986f22",
-                "Reference1" => "TestOrder"
-            ],
-            "Destination" => [
-                "Address" => [
-                    "ContactName" => "John Doe",
-                    "ContactEmail" => "john.doe@example.com",
-                    "ContactPhone" => "01234567890",
-                    "Line1" => "185 Farringdon Road",
-                    "Town" => "London",
-                    "Postcode" => "EC1A 1AA",
-                    "CountryCode" => "GB"
-                ],
-            ],
-
-            "Packages" => [
-                "PackageType" => "Parcel",
-                "DeclaredWeight" => "1.5",
-                "Dimensions" => [
-                    "Length" => "40.0",
-                    "Width" => "30.0",
-                    "Height" => "20.0"
-                ],
-            ]
-        ];
-
-        $orderedPackages = array($data["Packages"]);
-        $data["Packages"] = $orderedPackages;
-
-//        $payload = $this->serializeOne($shipment);
+        $payload = $this->serializeOne($shipment);
 
         $response = $this->sendRequest(
             Request::METHOD_POST,
             $this->buildEndpoint(self::BASE_URL, 'shipments/rm'),
-            $data,
+            $payload,
             ShipmentCreateResponse::class
         );
 
         return $this->deserializeOne($response, ShipmentCreateResponse::class);
+    }
+
+    /**
+     * @param string $base
+     * @param string $method
+     *
+     * @return string
+     */
+    protected function buildEndpoint(string $base, string $method): string
+    {
+        return "$base$method";
     }
 
     /**
@@ -805,6 +747,22 @@ class RoyalMailShippingApiClient
         );
 
         return $this->deserializeOne($response, ShipmentsCancelResponse::class);
+    }
+
+    /**
+     * @param array $items
+     *
+     * @return array
+     */
+    protected function serializeMany(array $items): array
+    {
+        $out = [];
+
+        foreach ($items as $item) {
+            $out[] = $this->serializeOne($item);
+        }
+
+        return $out;
     }
 
     /**
