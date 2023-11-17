@@ -2,288 +2,54 @@
 
 namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping;
 
-use JMS\Serializer\Annotation as JMS;
-
-/**
- * An address that is part of the address book.
- *     - A stored address can be used in shipment requests.
- *
- * Required properties: IsReturnAddress, ContactName, AddressLine1, Town, CountryCode
- */
 class Address
 {
     /**
-     * Address ID
-     *     - Your unique identifier for this address.
-     *     - If not provided, a GUID will be generated.
-     *
-     * example: UNIQUEID123
-     * maxLength: 70
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $addressId;
-
-    /**
-     * Is Return Address
-     *     - If true, then this address is also available as a return address.
-     *
-     * example:
-     *
-     * @JMS\Type("bool")
-     *
-     * @var bool
-     */
-    protected $isReturnAddress;
-
-    /**
-     * Company Name
-     *     - *Ignored if is a return address*
-     *
-     * example: Company & Co.
-     * maxLength: 35
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $companyName;
-
-    /**
-     * Contact Name / Return Name
-     *
-     * example: John Smith
-     * maxLength: 40
-     *
-     * @JMS\Type("string")
-     *
      * @var string
      */
-    protected $contactName;
+    protected string $contactName;
 
     /**
-     * Address Line 1
-     *
-     * example: Brown Cottage
-     * maxLength: 35
-     *
-     * @JMS\Type("string")
-     *
      * @var string
      */
-    protected $addressLine1;
+    protected string $contactEmail;
 
     /**
-     * Address Line 2
-     *
-     * example: 10 Sky Lane
-     * maxLength: 35
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $addressLine2;
-
-    /**
-     * Address Line 3
-     *
-     * example: Branton
-     * maxLength: 35
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $addressLine3;
-
-    /**
-     * Town
-     *
-     * example: Leatherhead
-     * maxLength: 35
-     *
-     * @JMS\Type("string")
-     *
      * @var string
      */
-    protected $town;
+    protected string $contactPhone;
 
     /**
-     * County / State / Province
-     *     - Conditional dependent on country.
-     *     - USA, Australia and Canada all require a valid state code or name.
-     *
-     * example: Surrey
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected $county;
-
-    /**
-     * Country Code
-     *     - [ISO Alpha-2 Country Code](https://www.nationsonline.org/oneworld/country_code_list.htm) per ISO 3166 Standard
-     *     - *Required to be GB if is a return address*
-     *
-     * example: GB
-     * minLength: 2
-     * maxLength: 2
-     *
-     * @JMS\Type("string")
-     *
      * @var string
      */
-    protected $countryCode;
+    protected string $line1;
 
     /**
-     * Postcode / Zip
-     *     - Required for domestic addresses and some international addresses.
-     *
-     * example: TW20 0HJ
-     * maxLength: 10
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
+     * @var string
      */
-    protected $postcode;
+    protected string $line2;
 
     /**
-     * Contact Phone Number
-     *     - Required for destination addresses where SMS notifications are requested.
-     *     - (Service Enhancement Code 13 or 16)
-     *     - *Ignored if is a return address*
-     *
-     * example: 7723456789
-     * maxLength: 20
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
+     * @var string
      */
-    protected $phoneNumber;
+    protected string $line3;
 
     /**
-     * Contact Email Address
-     *     - Required for destination addresses where email notifications are requested.
-     *     - (Service Enhancement Code 14 or 16)
-     *     - *Ignored if is a Return Address*
-     *
-     * example: email@example.com
-     * maxLength: 254
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
+     * @var string
      */
-    protected $emailAddress;
+    protected string $town;
 
     /**
-     * VAT Number
-     *     - *Ignored if is a return address*
-     *
-     * example: GB123 4567 89
-     * maxLength: 20
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
+     * @var string
      */
-    protected $vatNumber;
+    protected string $postcode;
 
     /**
-     * Safeplace
-     *     - Free text to describe a safe place to leave the parcel if the service allows it.
-     *     - *Ignored if is a return address*
-     *
-     * example: Front Porch
-     * maxLength: 30
-     *
-     * @JMS\Type("string")
-     *
-     * @var string|null
+     * @var string
      */
-    protected $safeplace;
+    protected string $countryCode;
 
     /**
-     * Get addressId
-     *
-     * @return string|null
-     */
-    public function getAddressId(): ?string
-    {
-        return $this->addressId;
-    }
-
-    /**
-     * Set addressId
-     *
-     * @param string|null $addressId
-     *
-     * @return $this
-     */
-    public function setAddressId(?string $addressId): self
-    {
-        $this->addressId = $addressId;
-
-        return $this;
-    }
-
-    /**
-     * Get isReturnAddress
-     *
-     * @return bool
-     */
-    public function getIsReturnAddress(): bool
-    {
-        return $this->isReturnAddress;
-    }
-
-    /**
-     * Set isReturnAddress
-     *
-     * @param bool $isReturnAddress
-     *
-     * @return $this
-     */
-    public function setIsReturnAddress(bool $isReturnAddress): self
-    {
-        $this->isReturnAddress = $isReturnAddress;
-
-        return $this;
-    }
-
-    /**
-     * Get companyName
-     *
-     * @return string|null
-     */
-    public function getCompanyName(): ?string
-    {
-        return $this->companyName;
-    }
-
-    /**
-     * Set companyName
-     *
-     * @param string|null $companyName
-     *
-     * @return $this
-     */
-    public function setCompanyName(?string $companyName): self
-    {
-        $this->companyName = $companyName;
-
-        return $this;
-    }
-
-    /**
-     * Get contactName
-     *
      * @return string
      */
     public function getContactName(): string
@@ -292,13 +58,10 @@ class Address
     }
 
     /**
-     * Set contactName
-     *
      * @param string $contactName
-     *
      * @return $this
      */
-    public function setContactName(string $contactName): self
+    public function setContactName(string $contactName): Address
     {
         $this->contactName = $contactName;
 
@@ -306,80 +69,106 @@ class Address
     }
 
     /**
-     * Get addressLine1
-     *
      * @return string
      */
-    public function getAddressLine1(): string
+    public function getContactEmail(): string
     {
-        return $this->addressLine1;
+        return $this->contactEmail;
     }
 
     /**
-     * Set addressLine1
-     *
-     * @param string $addressLine1
+     * @param string $contactEmail
      *
      * @return $this
      */
-    public function setAddressLine1(string $addressLine1): self
+    public function setContactEmail(string $contactEmail): Address
     {
-        $this->addressLine1 = $addressLine1;
+        $this->contactEmail = $contactEmail;
 
         return $this;
     }
 
     /**
-     * Get addressLine2
-     *
-     * @return string|null
+     * @return string
      */
-    public function getAddressLine2(): ?string
+    public function getContactPhone(): string
     {
-        return $this->addressLine2;
+        return $this->contactPhone;
     }
 
     /**
-     * Set addressLine2
-     *
-     * @param string|null $addressLine2
+     * @param string $contactPhone
      *
      * @return $this
      */
-    public function setAddressLine2(?string $addressLine2): self
+    public function setContactPhone(string $contactPhone): Address
     {
-        $this->addressLine2 = $addressLine2;
+        $this->contactPhone = $contactPhone;
 
         return $this;
     }
 
     /**
-     * Get addressLine3
-     *
-     * @return string|null
+     * @return string
      */
-    public function getAddressLine3(): ?string
+    public function getLine1(): string
     {
-        return $this->addressLine3;
+        return $this->line1;
     }
 
     /**
-     * Set addressLine3
-     *
-     * @param string|null $addressLine3
+     * @param string $line1
      *
      * @return $this
      */
-    public function setAddressLine3(?string $addressLine3): self
+    public function setLine1(string $line1): Address
     {
-        $this->addressLine3 = $addressLine3;
+        $this->line1 = $line1;
 
         return $this;
     }
 
     /**
-     * Get town
+     * @return string
+     */
+    public function getLine2(): string
+    {
+        return $this->line2;
+    }
+
+    /**
+     * @param string $line2
      *
+     * @return $this
+     */
+    public function setLine2(string $line2): Address
+    {
+        $this->line2 = $line2;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLine3(): string
+    {
+        return $this->line3;
+    }
+
+    /**
+     * @param string $line3
+     *
+     * @return $this
+     */
+    public function setLine3(string $line3): Address
+    {
+        $this->line3 = $line3;
+
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getTown(): string
@@ -388,13 +177,11 @@ class Address
     }
 
     /**
-     * Set town
-     *
      * @param string $town
      *
      * @return $this
      */
-    public function setTown(string $town): self
+    public function setTown(string $town): Address
     {
         $this->town = $town;
 
@@ -402,32 +189,26 @@ class Address
     }
 
     /**
-     * Get county
-     *
-     * @return string|null
+     * @return string
      */
-    public function getCounty(): ?string
+    public function getPostcode(): string
     {
-        return $this->county;
+        return $this->postcode;
     }
 
     /**
-     * Set county
-     *
-     * @param string|null $county
+     * @param string $postcode
      *
      * @return $this
      */
-    public function setCounty(?string $county): self
+    public function setPostcode(string $postcode): Address
     {
-        $this->county = $county;
+        $this->postcode = $postcode;
 
         return $this;
     }
 
     /**
-     * Get countryCode
-     *
      * @return string
      */
     public function getCountryCode(): string
@@ -436,135 +217,13 @@ class Address
     }
 
     /**
-     * Set countryCode
-     *
      * @param string $countryCode
      *
      * @return $this
      */
-    public function setCountryCode(string $countryCode): self
+    public function setCountryCode(string $countryCode): Address
     {
         $this->countryCode = $countryCode;
-
-        return $this;
-    }
-
-    /**
-     * Get postcode
-     *
-     * @return string|null
-     */
-    public function getPostcode(): ?string
-    {
-        return $this->postcode;
-    }
-
-    /**
-     * Set postcode
-     *
-     * @param string|null $postcode
-     *
-     * @return $this
-     */
-    public function setPostcode(?string $postcode): self
-    {
-        $this->postcode = $postcode;
-
-        return $this;
-    }
-
-    /**
-     * Get phoneNumber
-     *
-     * @return string|null
-     */
-    public function getPhoneNumber(): ?string
-    {
-        return $this->phoneNumber;
-    }
-
-    /**
-     * Set phoneNumber
-     *
-     * @param string|null $phoneNumber
-     *
-     * @return $this
-     */
-    public function setPhoneNumber(?string $phoneNumber): self
-    {
-        $this->phoneNumber = $phoneNumber;
-
-        return $this;
-    }
-
-    /**
-     * Get emailAddress
-     *
-     * @return string|null
-     */
-    public function getEmailAddress(): ?string
-    {
-        return $this->emailAddress;
-    }
-
-    /**
-     * Set emailAddress
-     *
-     * @param string|null $emailAddress
-     *
-     * @return $this
-     */
-    public function setEmailAddress(?string $emailAddress): self
-    {
-        $this->emailAddress = $emailAddress;
-
-        return $this;
-    }
-
-    /**
-     * Get vatNumber
-     *
-     * @return string|null
-     */
-    public function getVatNumber(): ?string
-    {
-        return $this->vatNumber;
-    }
-
-    /**
-     * Set vatNumber
-     *
-     * @param string|null $vatNumber
-     *
-     * @return $this
-     */
-    public function setVatNumber(?string $vatNumber): self
-    {
-        $this->vatNumber = $vatNumber;
-
-        return $this;
-    }
-
-    /**
-     * Get safeplace
-     *
-     * @return string|null
-     */
-    public function getSafeplace(): ?string
-    {
-        return $this->safeplace;
-    }
-
-    /**
-     * Set safeplace
-     *
-     * @param string|null $safeplace
-     *
-     * @return $this
-     */
-    public function setSafeplace(?string $safeplace): self
-    {
-        $this->safeplace = $safeplace;
 
         return $this;
     }
