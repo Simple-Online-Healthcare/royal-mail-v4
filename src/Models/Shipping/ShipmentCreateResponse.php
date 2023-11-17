@@ -87,4 +87,12 @@ class ShipmentCreateResponse
 
         return $this;
     }
+
+    /**
+     * @return PackageResponse[]|null
+     */
+    public function getPackages(): ?array
+    {
+        return $this->packages;
+    }
 }
