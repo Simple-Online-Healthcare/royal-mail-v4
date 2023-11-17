@@ -640,6 +640,10 @@ class RoyalMailShippingApiClient
         /** @var ShipmentCreateResponse $shipmentCreateResponse */
         $shipmentCreateResponse = $this->deserializeOne($response, ShipmentCreateResponse::class);
 
+        dump($shipmentCreateResponse->getMessage());
+        dump($shipmentCreateResponse->getErrors());
+        dump($shipmentCreateResponse->getLabels());
+        dump($shipmentCreateResponse->getLabelFormat());
         dump($shipmentCreateResponse->getPackages()[0]->getShipmentId());
         dump($shipmentCreateResponse->getPackages()[0]->getTrackingNumber());
         dump($shipmentCreateResponse->getPackages()[0]->getCarrierTrackingUrl());
