@@ -222,7 +222,7 @@ class RoyalMailShippingApiClient
             ],
         ]);
 
-        dd($response->getBody());
+        dd($response->getBody()->getContents());
 
         if ($this->responseIsError($response)) {
             if ($response->getStatusCode() === Response::HTTP_UNAUTHORIZED) {
