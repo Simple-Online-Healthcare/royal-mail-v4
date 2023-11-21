@@ -182,7 +182,11 @@ class RoyalMailShippingApiClient
             }
         }
 
-        return json_decode((string)$response->getBody(), true);
+        if (!$responseBody = (string)$response->getBody()) {
+            return [];
+        }
+
+        return json_decode($responseBody, true);
     }
 
     /**
