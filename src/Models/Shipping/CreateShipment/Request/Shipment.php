@@ -1,8 +1,8 @@
 <?php
 
-namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment;
+declare(strict_types=1);
 
-use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\Shipper;
+namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\Request;
 
 class Shipment
 {

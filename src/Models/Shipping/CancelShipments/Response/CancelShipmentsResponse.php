@@ -1,15 +1,13 @@
 <?php
 
-namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping;
+declare(strict_types=1);
+
+namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CancelShipments\Response;
 
 use JMS\Serializer\Annotation as JMS;
+use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\ErrorDetail;
 
-/**
- * Response from a create shipment request
- *
- * Required properties: HttpStatusCode, HttpStatusDescription
- */
-class ShipmentCreateResponse
+class CancelShipmentsResponse
 {
     /**
      * @JMS\Type("string")
@@ -24,27 +22,6 @@ class ShipmentCreateResponse
      * @var ErrorDetail[]|null
      */
     protected ?array $errors = null;
-
-    /**
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected ?string $labels = null;
-
-    /**
-     * @JMS\Type("string")
-     *
-     * @var string|null
-     */
-    protected ?string $labelFormat = null;
-
-    /**
-     * @JMS\Type("array<SimpleOnlineHealthcare\RoyalMail\Models\Shipping\PackageResponse>")
-     *
-     * @var PackageResponse[]|null
-     */
-    protected ?array $packages = null;
 
     /**
      * @return string|null
@@ -100,29 +77,5 @@ class ShipmentCreateResponse
         $this->errors[] = $error;
 
         return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getLabels(): ?string
-    {
-        return $this->labels;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getLabelFormat(): ?string
-    {
-        return $this->labelFormat;
-    }
-
-    /**
-     * @return PackageResponse[]|null
-     */
-    public function getPackages(): ?array
-    {
-        return $this->packages;
     }
 }

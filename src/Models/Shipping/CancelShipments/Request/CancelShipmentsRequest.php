@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping;
+namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CancelShipments\Request;
 
 use JMS\Serializer\Annotation as JMS;
 
-class ShipmentCancelRequest
+class CancelShipmentsRequest
 {
     public const REASON_ORDER_CANCELLED = 'Order Cancelled';
 

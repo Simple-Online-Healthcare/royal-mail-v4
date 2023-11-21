@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleOnlineHealthcare\RoyalMail\Exceptions;
 
 use Psr\Http\Message\ResponseInterface;
@@ -10,24 +12,22 @@ class RequestFailedException extends BaseException
     /**
      * @var ResponseInterface
      */
-    protected $response;
+    protected ResponseInterface $response;
 
     /**
      * @var object|null
      */
-    protected $responseModel;
+    protected ?object $responseModel;
 
     /**
-     * RequestFailedException constructor.
-     *
      * @param ResponseInterface $response
-     * @param Throwable|null    $previous
+     * @param Throwable|null $previous
      */
     public function __construct(ResponseInterface $response, ?Throwable $previous = null)
     {
         $this->response = $response;
 
-        parent::__construct((string) $response->getBody(), $response->getStatusCode(), $previous);
+        parent::__construct((string)$response->getBody(), $response->getStatusCode(), $previous);
     }
 
     /**

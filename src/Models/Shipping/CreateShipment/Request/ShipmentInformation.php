@@ -1,17 +1,14 @@
 <?php
 
-namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment;
+declare(strict_types=1);
+
+namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\Request;
 
 class ShipmentInformation
 {
     const PRODUCT_DOCUMENTS = 'DOX';
     const PRODUCT_OTHER = 'NDX';
-
     const LABEL_FORMAT_PDF = 'PDF';
-    const LABEL_FORMAT_PNG = 'PNG';
-    const LABEL_FORMAT_DATASTREAM = 'DATASTREAM';
-    const LABEL_FORMAT_ZPL203DPI = 'ZPL203DPI';
-    const LABEL_FORMAT_ZPL300DPI = 'ZPL300DPI';
 
     /**
      * @var string

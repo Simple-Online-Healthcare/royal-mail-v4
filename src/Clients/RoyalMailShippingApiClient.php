@@ -8,10 +8,10 @@ use GuzzleHttp\Client as HttpClient;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface;
 use SimpleOnlineHealthcare\RoyalMail\Exceptions\RequestFailedException;
-use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\Shipment;
-use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\ShipmentCancelRequest;
-use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\ShipmentCreateResponse;
-use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\ShipmentsCancelResponse;
+use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CancelShipments\Request\CancelShipmentsRequest;
+use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CancelShipments\Response\CancelShipmentsResponse;
+use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\Request\Shipment;
+use SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\Response\CreateShipmentResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -249,11 +249,11 @@ class RoyalMailShippingApiClient
     /**
      * @param Shipment $shipment
      *
-     * @return object|ShipmentCreateResponse
+     * @return CreateShipmentResponse
      *
      * @throws RequestFailedException
      */
-    public function createShipment(Shipment $shipment): ShipmentCreateResponse
+    public function createShipment(Shipment $shipment): CreateShipmentResponse
     {
         $payload = $this->serializeOne($shipment);
 
@@ -261,20 +261,20 @@ class RoyalMailShippingApiClient
             Request::METHOD_POST,
             $this->buildEndpoint(self::BASE_URL, 'shipments/rm'),
             $payload,
-            ShipmentCreateResponse::class
+            CreateShipmentResponse::class
         );
 
-        return $this->deserializeOne($response, ShipmentCreateResponse::class);
+        return $this->deserializeOne($response, CreateShipmentResponse::class);
     }
 
     /**
-     * @param ShipmentCancelRequest $shipmentCancelRequest
+     * @param CancelShipmentsRequest $shipmentCancelRequest
      *
-     * @return ShipmentsCancelResponse|object
+     * @return CancelShipmentsResponse|object
      *
      * @throws RequestFailedException
      */
-    public function cancelShipment(ShipmentCancelRequest $shipmentCancelRequest): ShipmentsCancelResponse
+    public function cancelShipments(CancelShipmentsRequest $shipmentCancelRequest): CancelShipmentsResponse
     {
         $payload = [
             'Status' => self::SHIPMENT_STATUS_CANCEL,
@@ -286,9 +286,9 @@ class RoyalMailShippingApiClient
             Request::METHOD_PUT,
             'shipments/status',
             $payload,
-            ShipmentsCancelResponse::class
+            CancelShipmentsResponse::class
         );
 
-        return $this->deserializeOne($response, ShipmentsCancelResponse::class);
+        return $this->deserializeOne($response, CancelShipmentsResponse::class);
     }
 }

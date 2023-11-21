@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'shipping' => [
         'auth' => [
@@ -13,16 +15,6 @@ return [
         'serializer' => [
             'cachePath' => env('ROYALMAIL_SHIPPING_SERIALIZER_CACHE_PATH', storage_path('framework/cache/royalmail/shipping')),
             'debug' => env('ROYALMAIL_SHIPPING_SERIALIZER_DEBUG', false),
-        ],
-    ],
-    'tracking' => [
-        'auth' => [
-            'clientId' => env('ROYALMAIL_TRACKING_AUTH_CLIENT_ID'),
-            'clientSecret' => env('ROYALMAIL_TRACKING_AUTH_CLIENT_SECRET'),
-        ],
-        'serializer' => [
-            'cachePath' => env('ROYALMAIL_TRACKING_SERIALIZER_CACHE_PATH', storage_path('framework/cache/royalmail/tracking')),
-            'debug' => env('ROYALMAIL_TRACKING_SERIALIZER_DEBUG', false),
         ],
     ],
 ];

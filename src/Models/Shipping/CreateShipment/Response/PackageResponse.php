@@ -1,6 +1,8 @@
 <?php
 
-namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping;
+declare(strict_types=1);
+
+namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\Response;
 
 use JMS\Serializer\Annotation as JMS;
 

@@ -1,68 +1,42 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping;
 
 use JMS\Serializer\Annotation as JMS;
 
-/**
- * Details about an error
- */
 class ErrorDetail
 {
     /**
-     * Message
-     *     - The error message, or issue.
-     *
-     * example: The first line of the address must be 35 characters or less.
-     *
      * @JMS\Type("string")
      *
      * @var string
      */
-    protected $message;
+    protected string $message;
 
     /**
-     * Cause
-     *     - The cause of the error.
-     *
-     * example: DestinationAddressLine1
-     *
      * @JMS\Type("string")
      *
      * @var string
      */
-    protected $cause;
+    protected string $cause;
 
     /**
-     * Error Code
-     *     - The error code for this error.
-     *     - **E1431** - System error
-     *     - **E1432** - Required field
-     *     - **E1433** - Invalid field
-     *     - **E1434** - Invalid action
-     *     - **E1435** - Item not found
-     *
-     * example: E1433
-     *
      * @JMS\Type("string")
      *
      * @var string
      */
-    protected $errorCode;
+    protected string $errorCode;
 
     /**
-     * Error Log Id
-     *     - The associated Error Log Id if exists.
-     *
      * @JMS\Type("string")
      *
      * @var string
      */
-    protected $errorId;
+    protected string $errorId;
 
     /**
-     * Get message
-     *
      * @return string
      */
     public function getMessage(): string
@@ -71,8 +45,6 @@ class ErrorDetail
     }
 
     /**
-     * Set message
-     *
      * @param string $message
      *
      * @return $this
@@ -85,8 +57,6 @@ class ErrorDetail
     }
 
     /**
-     * Get cause
-     *
      * @return string
      */
     public function getCause(): string
@@ -95,8 +65,6 @@ class ErrorDetail
     }
 
     /**
-     * Set cause
-     *
      * @param string $cause
      *
      * @return $this
@@ -109,8 +77,6 @@ class ErrorDetail
     }
 
     /**
-     * Get errorCode
-     *
      * @return string
      */
     public function getErrorCode(): string
@@ -119,8 +85,6 @@ class ErrorDetail
     }
 
     /**
-     * Set errorCode
-     *
      * @param string $errorCode
      *
      * @return $this
@@ -133,8 +97,6 @@ class ErrorDetail
     }
 
     /**
-     * Get errorId
-     *
      * @return string
      */
     public function getErrorId(): string
@@ -143,8 +105,6 @@ class ErrorDetail
     }
 
     /**
-     * Set errorId
-     *
      * @param string $errorId
      *
      * @return $this
