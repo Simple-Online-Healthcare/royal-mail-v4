@@ -284,7 +284,7 @@ class RoyalMailShippingApiClient
 
         $response = $this->sendRequest(
             Request::METHOD_PUT,
-            'shipments/status',
+            $this->buildEndpoint(self::BASE_URL, 'shipments/status'),
             $payload,
             CancelShipmentsResponse::class
         );
