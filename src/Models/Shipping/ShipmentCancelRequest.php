@@ -1,66 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SimpleOnlineHealthcare\RoyalMail\Models\Shipping;
 
 use JMS\Serializer\Annotation as JMS;
 
-/**
- * A request to cancel a shipment.
- *
- * Required properties: ShipmentId, ReasonForCancellation
- */
 class ShipmentCancelRequest
 {
+    public const REASON_ORDER_CANCELLED = 'Order Cancelled';
+
     /**
-     * Shipment Id
-     *     - The tracking number or Unique Id of the shipment to cancel.
+     * @JMS\Type("array<string>")
      *
-     * example: ED521469583GB
-     * minLength: 13
-     * maxLength: 21
-     *
+     * @var string[]
+     */
+    protected array $shipmentIds = [];
+
+    /**
      * @JMS\Type("string")
      *
      * @var string
      */
-    protected $shipmentId;
+    protected string $reasonForCancellation = self::REASON_ORDER_CANCELLED;
 
     /**
-     * Reason for Cancellation
-     *
-     * @JMS\Type("string")
-     *
-     * @var string
+     * @return string[]
      */
-    protected $reasonForCancellation;
-
-    /**
-     * Get shipmentId
-     *
-     * @return string
-     */
-    public function getShipmentId(): string
+    public function getShipmentIds(): array
     {
-        return $this->shipmentId;
+        return $this->shipmentIds;
     }
 
     /**
-     * Set shipmentId
-     *
      * @param string $shipmentId
      *
      * @return $this
      */
-    public function setShipmentId(string $shipmentId): self
+    public function addShipmentId(string $shipmentId): self
     {
-        $this->shipmentId = $shipmentId;
+        if (!in_array($shipmentId, $this->shipmentIds)) {
+            $this->shipmentIds[] = $shipmentId;
+        }
 
         return $this;
     }
 
     /**
-     * Get reasonForCancellation
-     *
      * @return string
      */
     public function getReasonForCancellation(): string
@@ -69,8 +55,6 @@ class ShipmentCancelRequest
     }
 
     /**
-     * Set reasonForCancellation
-     *
      * @param string $reasonForCancellation
      *
      * @return $this

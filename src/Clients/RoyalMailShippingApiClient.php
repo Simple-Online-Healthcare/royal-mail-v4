@@ -19,6 +19,7 @@ class RoyalMailShippingApiClient
 {
     protected const AUTH_URL = 'https://authentication.proshipping.net/connect/token';
     protected const BASE_URL = 'https://api.proshipping.net/v4/';
+    protected const SHIPMENT_STATUS_CANCEL = 'Cancel';
 
     /**
      * @var RoyalMailShippingAuthClient
@@ -263,7 +264,6 @@ class RoyalMailShippingApiClient
             ShipmentCreateResponse::class
         );
 
-        /** @var ShipmentCreateResponse $shipmentCreateResponse */
         return $this->deserializeOne($response, ShipmentCreateResponse::class);
     }
 
@@ -276,11 +276,15 @@ class RoyalMailShippingApiClient
      */
     public function cancelShipment(ShipmentCancelRequest $shipmentCancelRequest): ShipmentsCancelResponse
     {
-        $payload = $this->serializeOne($shipmentCancelRequest);
+        $payload = [
+            'Status' => self::SHIPMENT_STATUS_CANCEL,
+            'Reason' => $shipmentCancelRequest->getReasonForCancellation(),
+            'ShipmentIds' => $shipmentCancelRequest->getShipmentIds(),
+        ];
 
         $response = $this->sendRequest(
             Request::METHOD_PUT,
-            'shipments/cancel',
+            'shipments/status',
             $payload,
             ShipmentsCancelResponse::class
         );
