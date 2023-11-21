@@ -38,7 +38,7 @@ class CreateShipmentResponse
     protected ?string $labelFormat = null;
 
     /**
-     * @JMS\Type("array<SimpleOnlineHealthcare\RoyalMail\Models\Shipping\PackageResponse>")
+     * @JMS\Type("array<SimpleOnlineHealthcare\RoyalMail\Models\Shipping\CreateShipment\Response\PackageResponse>")
      *
      * @var PackageResponse[]|null
      */
