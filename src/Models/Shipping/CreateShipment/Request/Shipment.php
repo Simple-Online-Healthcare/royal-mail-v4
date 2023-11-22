@@ -27,6 +27,11 @@ class Shipment
     protected array $packages = [];
 
     /**
+     * @var CarrierSpecifics
+     */
+    protected CarrierSpecifics $carrierSpecifics;
+
+    /**
      * @return Shipper|null
      */
     public function getShipper(): ?Shipper
@@ -104,5 +109,25 @@ class Shipment
     public function getPackages(): array
     {
         return $this->packages;
+    }
+
+    /**
+     * @return CarrierSpecifics
+     */
+    public function getCarrierSpecifics(): CarrierSpecifics
+    {
+        return $this->carrierSpecifics;
+    }
+
+    /**
+     * @param CarrierSpecifics $carrierSpecifics
+     *
+     * @return Shipment
+     */
+    public function setCarrierSpecifics(CarrierSpecifics $carrierSpecifics): Shipment
+    {
+        $this->carrierSpecifics = $carrierSpecifics;
+
+        return $this;
     }
 }
